@@ -1,0 +1,15 @@
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  min-width: 350px;
+  min-height: 350px;
+  height: 100%;
+  width: 100%;
+  background-color: $lightgrey;
+  font-family: sans-serif;
+}
+
+a {
+  text-decoration: none;
+}

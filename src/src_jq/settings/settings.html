@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <title>Settings</title>
+<head>
+  <link rel="stylesheet" href="../libraries/jquery-ui.css">
+</head>
+
+<body>
+  <a href="../../cheatsheets/page.html">cheatsheets</a>
+  <br/><br/>
+
+  <h2>Smartoteka</h2>
+  <button id="export-all-btn">Export all</button>
+  <br />
+  <br />
+  <form id="import-form">
+    <label for="file">Import all data</label>
+    <br /><br />
+    <input type="file" id="import-file" accept=".json">
+    <br /><br />
+    <button id="import-btn">Import all</button>
+  </form>
+  <br>
+  <br>
+  <h2>Options</h2>
+  <button id="export-spead-deal-btn">Export speed deal</button>
+  <br />
+  <br />
+  <form id="import-spead-deal-form">
+    <label for="file">Import spead deal</label>
+    <br /><br />
+    <input type="file" id="import-spead-deal-file" accept=".json">
+    <br /><br />
+    <button id="import-spead-deal-btn">Import spead-deal</button>
+  </form>
+
+  <script src="../libraries/jquery-3.6.0.min.js"></script>
+  <script src="../libraries/jquery-ui.js"></script>
+  <script type="module" src="./settings.js"></script>
+</body>
+
+</html>

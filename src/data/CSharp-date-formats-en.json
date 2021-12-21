@@ -1,0 +1,61 @@
+{
+  "SheetPosts": {
+    "uid": "1",
+    "creator": "flipworldit@gmail.com",
+    "title": "Custom date and time format strings",
+    "content": "some description <code>using System;  \n\n  \n\nnamespace DateTimeFormatInCSharpSample  \n\n{  \n\n    class Program  \n\n    {  \n\n        static void Main(string[] args)  \n\n        {  \n\n            // Get current DateTime. It can be any DateTime object in your code.  \n\n            DateTime aDate = DateTime.Now;  \n\n  \n\n            // Format Datetime in different formats and display them  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy\"));  \n\n            Console.WriteLine(aDate.ToString(\"dddd, dd MMMM yyyy HH:mm:ss\"));  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy HH:mm\"));  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy hh:mm tt\"));  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy H:mm\"));  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy h:mm tt\"));  \n\n            Console.WriteLine(aDate.ToString(\"MM/dd/yyyy HH:mm:ss\"));  \n\n            Console.WriteLine(aDate.ToString(\"MMMM dd\"));  \n\n            Console.WriteLine(aDate.ToString(\"yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss.fffffffK\"));  \n\n            Console.WriteLine(aDate.ToString(\"ddd, dd MMM yyy HH’:’mm’:’ss ‘GMT’\"));  \n\n            Console.WriteLine(aDate.ToString(\"yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss\"));  \n\n            Console.WriteLine(aDate.ToString(\"HH:mm\"));  \n\n            Console.WriteLine(aDate.ToString(\"hh:mm tt\"));  \n\n            Console.WriteLine(aDate.ToString(\"H:mm\"));  \n\n            Console.WriteLine(aDate.ToString(\"h:mm tt\"));  \n\n            Console.WriteLine(aDate.ToString(\"HH:mm:ss\"));  \n\n            Console.WriteLine(aDate.ToString(\"yyyy MMMM\"));  \n\n  \n\n            Console.ReadKey();  \n\n        }  \n\n    }  \n\n}</code>",
+    "allTags": [
+      "C#",
+      ".Net",
+      "CSharp",
+      "dot net",
+      "Date",
+      "Datetime",
+      "format string",
+      "ToString",
+      "en"
+    ],
+    "childrenPosts": [
+      {
+        "uid": "1.2",
+        "creator": "flipworldit@gmail.com",
+        "title": "short day name",
+        "content": "<formatspec>d<formatspec><description>The day of the month, from 1 through 31.</description><example>2009-06-01T13:45:30 -> 1<example>",
+        "allTags": [
+          "C#",
+          ".Net",
+          "CSharp",
+          "dot net",
+          "Date",
+          "Datetime",
+          "format string",
+          "ToString",
+          "en",
+          
+          "day",
+          "short name"
+        ]
+      },
+      {
+        "uid": "1.3",
+        "creator": "flipworldit@gmail.com",
+        "title": "day is formatted with a leading zero",
+        "content": "<formatspec>dd<formatspec><description>The day of the month, from 1 through 31.</description><example>2009-06-01T13:45:30 -> 01<example>",
+        "allTags": [
+          "C#",
+          ".Net",
+          "CSharp",
+          "dot net",
+          "Date",
+          "Datetime",
+          "format string",
+          "ToString",
+          "en",
+
+          "day",
+          "leading zero"
+        ]
+      }
+    ]
+  }
+}
