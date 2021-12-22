@@ -21,11 +21,13 @@ I offer pin smartoteka in chrome
 ![pin_smartoteka](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/pin_smartoteka.png)
 
 # Introduction
+
 From main page you can add, search and edit exists cheatsheets, go to settings, go to tab-mode.
 
 ![smartoteka_main](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/smartoteka_main.png)
 
 Search works with correct mistakes and autocomplete
+
 ![autocomplete](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/autocomplete.png)
 
 After search you will see cheatsheets by you tags
