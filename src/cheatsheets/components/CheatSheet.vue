@@ -21,7 +21,7 @@
       <div class="tags" v-if="editMode">
         <select2 :options="allTags" v-model="editTags"> </select2>
       </div>
-      <div class="code" v-if="!hideContent">
+      <div class="code" v-if="!hideContent" :style="editMode?'width:100%':''">
         <Editor
           ref="editor"
           v-if="editMode"
