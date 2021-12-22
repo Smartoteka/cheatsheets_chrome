@@ -120,6 +120,8 @@ export default {
       let vm = this
       // prevent the browser's default menu
       e.preventDefault()
+      e.stopPropagation()
+
       // shou our menu
       this.$contextmenu({
         x: e.x,
