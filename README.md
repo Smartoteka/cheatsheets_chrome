@@ -1,6 +1,17 @@
-# Recorder Chrome extension
+# Getting started
+- download last [release](https://github.com/Smartoteka/cheatsheets_chrome/releases)
+- unzip release in folder
+- open chrome extensions page
+- enable developer mode (switch in the top right corner)
+- click 'Load unpacked' from the bar
+- and select your unzip folder
 
-in order to run Recorder
+# Best Practice
+
+
+# Contribute to Chrome extension
+
+in order to run
 - clone this repo
 - install dependencies ```npm i```
 - start dev server ```npm run dev```
