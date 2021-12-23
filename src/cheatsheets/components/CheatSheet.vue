@@ -342,6 +342,14 @@ $sky: #e6f6fe;
   border: 2px solid #e6f6fe;
 }
 
+.info.selected {
+  border-color: #6dfc85;
+}
+
+.link.selected {
+  border-color: #9adafa;
+}
+
 .selected {
   border-width: 4px !important;
   margin: 6px 6px !important;

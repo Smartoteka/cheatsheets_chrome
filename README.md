@@ -38,14 +38,25 @@ Attension! I recomend export your smartoteka and store reserv copy from settings
 
 ![settings](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/settings.png)
 
-When you push add then you can add cheatsheet (markdown + tags), tabs (link+markdown+tags), session (many tabs with similar tags)
+When you push add button then you can add cheatsheet (markdown + tags), tabs (link+markdown+tags), session (many tabs with similar tags)
 
 ![save_tab](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/save_tab.png)
+
+If you choose Session you will see cheatsheets with tabs from window in chrome where you opened smartoteka.
+
 ![Add_session](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/Add_session.png)
+
+You can add all tabs or select needed.
+
+![selected_tabs](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/selected_tabs.png)
 
 If group or cheatsheet have blue border you can open this link use menu from right corner.
 
 ![session_menu](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/session_menu.png)
+
+You can open all or select needed
+
+![Selected_cheatSheets](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/Selected_cheatSheets.png)
 
 # Contribute to Chrome extension
 
