@@ -21,7 +21,13 @@
           />
         </svg>
       </div>
-      <h3 class="text-2xl font-bold text-center">Login to your account</h3>
+      <h3 class="text-2xl font-bold text-center">
+        <img
+          class="loading"
+          :style="'visibility:' + (requestSend ? 'visible' : 'hidden')"
+          src="/images/loading.gif"
+        />Login to your account
+      </h3>
 
       <div class="mt-4">
         <div>
@@ -66,6 +72,7 @@
         </div>
         <div class="flex items-baseline justify-between">
           <button
+            :disabled="requestSend"
             class="
               px-6
               py-2
@@ -80,6 +87,7 @@
             Login
           </button>
           <button
+            :disabled="requestSend"
             class="
               px-6
               py-2
@@ -96,7 +104,7 @@
           <!-- <a href="#" class="text-sm text-blue-600 hover:underline">Forgot password?</a> -->
         </div>
         <div class="flex items-baseline justify-between">
-         <span class="text-xs tracking-wide text-red-600"
+          <span class="text-xs tracking-wide text-red-600"
             >{{ sendMessage }}
           </span>
         </div>
@@ -121,6 +129,7 @@ export default {
       emailMessage: '',
       loginMessage: '',
       sendMessage: '',
+      requestSend: false,
     }
   },
   props: {},
@@ -152,6 +161,11 @@ export default {
         return false
       }
 
+      if (this.requestSend) {
+        return
+      }
+      this.requestSend = true
+
       axios
         .put('/Main', {
           login: this.login,
@@ -160,6 +174,7 @@ export default {
           version: chrome.runtime.getManifest().version,
         })
         .then((response) => {
+          this.requestSend = false
           let data = response.data
 
           if (data.isSuccess && data.result) {
@@ -171,6 +186,7 @@ export default {
           }
         })
         .catch((e) => {
+          this.requestSend = false
           this.sendMessage = 'An error occurred while sending. Try it later or write for help'
         })
     },
@@ -178,6 +194,11 @@ export default {
       if (!this.isValid()) {
         return false
       }
+
+      if (this.requestSend) {
+        return
+      }
+      this.requestSend = true
 
       axios
         .post('/Main', {
@@ -187,6 +208,7 @@ export default {
           version: chrome.runtime.getManifest().version,
         })
         .then((response) => {
+          this.requestSend = false
           let data = response.data
 
           if (data.isSuccess && data.result) {
@@ -198,6 +220,7 @@ export default {
           }
         })
         .catch((e) => {
+          this.requestSend = false
           this.sendMessage = 'An error occurred while sending. Try it later or write for help'
         })
     },
@@ -214,4 +237,12 @@ export default {
 
 <style lang="css">
 @import "./tailwind.min.css";
+
+.loading {
+  width: 20px;
+
+  height: 20px;
+  margin-right: 10px;
+  display: inline-block;
+}
 </style>
