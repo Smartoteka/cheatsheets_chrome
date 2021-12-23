@@ -1,26 +1,11 @@
-// for vuex sync
-// import store from '../store/index'
-
-// chrome.runtime.onInstalled.addListener(() => {
-//   chrome.storage.sync.set({ color });
-//   console.log('Default background color set to %cgreen', `color: ${color}`);
-// });
-
-// chrome.tabs.onActivated.addListener(activeInfo => move(activeInfo));
-
-// async function move(activeInfo) {
-//   console.log(activeInfo);
-// }
-
-// TODO move to separate module
 import storage from '@/utils/storage'
 import { getActiveTab } from '@/src_jq/common/commonFunctions'
 
+let currentPopupId = null
+
 async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
-  let activateTab = async (tab) => {
-    let value = {}
-    value[url] = tab.id
-    await storage.set(value)
+  let createWindowCallback = async (openedWindow) => {
+    currentPopupId = openedWindow.id
   }
 
   let create = (top) => chrome.windows.create(
@@ -34,13 +19,12 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
       left: screen.width - width,
       // alwaysOnTop: true,
     },
-    activateTab,
+    createWindowCallback,
   )
 
   let open = async (top) => {
-    let popup = await storage.get(url)
-    if (popup) {
-      chrome.windows.update(popup,
+    if (currentPopupId) {
+      chrome.windows.update(currentPopupId,
         { focused: true },
         (openWindow) => {
           if (openWindow) {
@@ -61,14 +45,24 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
   }
 
   let value = {}
-  value.windowId = activeTab.windowId
+  value.windowId = activeTab?.windowId
   await storage.set(value)
 
-  await open(screen.height - activeTab.height)
+  await open(screen.height - height)
 }
 
+chrome.windows.onRemoved.addListener(
+  async (windowId) => {
+    if (windowId === currentPopupId) {
+      currentPopupId = null
+    }
+  },
+  { windowTypes: ['popup'] },
+)
+
+let popupUrl = 'popup/popup.html'
 async function openPopup(tab, isAddMode) {
-  await getOrCreatePopup(tab, 'popup/popup.html', 500, tab.height, isAddMode)
+  await getOrCreatePopup(tab, popupUrl, 500, tab ? tab.height : 1000, isAddMode)
 }
 
 chrome.commands.onCommand.addListener(async (command) => {
@@ -90,21 +84,6 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 })
 
-chrome.runtime.onInstalled.addListener(async (details) => {
-  await storage.set({ popup: null })
-})
-
 chrome.browserAction.onClicked.addListener((tab) => {
   openPopup(tab, false)
 })
-
-chrome.windows.onRemoved.addListener(async (windowId) => {
-  let popup = await storage.get('popup')
-  if (windowId === popup) {
-    await storage.set({ popup: null })
-  }
-})
-
-// chrome.action.onClicked.addListener((tab) => {
-//   console.log("Tab:" + tab);
-// });
