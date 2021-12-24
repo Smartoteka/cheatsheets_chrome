@@ -26,7 +26,7 @@
           </div>
         </addModes>
         <CheatSheet
-          style="min-width: 350px; width: 100%;"
+          style="min-width: 350px; width: 100%"
           :cheatsheet="newCheatSheet"
           :allTags="options"
           v-on:update-cheatsheet="saveNewCheatSheet"
@@ -111,6 +111,7 @@
 </template>
 
 <script>
+import jQuery from 'jquery'
 import storage from '@/utils/storage'
 import Navbar from '@/common/Navbar'
 
@@ -130,6 +131,9 @@ import {
 } from '@/src_jq/common/commonFunctions'
 import { cheatsheetsGroup } from '@/src_jq/common/cheatSheetsManage'
 import { getFilterByFilterTags } from '@/src_jq/common/mulitselectTagsHandlers'
+
+window.$ = jQuery
+let $ = jQuery
 
 export default {
   name: 'App',
@@ -221,28 +225,31 @@ export default {
     window.addEventListener(
       'keypress',
       (e) => {
+        const activeElement = document.activeElement
+
         if (e.code === 'Escape') {
-          setTimeout(() => $(document.activeElement).blur())
+          setTimeout(() => $(activeElement).blur())
           return
         }
 
-        if (
-          document.activeElement.type === 'textarea'
-          || document.activeElement.type === 'text'
+        if (activeElement.type === 'textarea'
+        || activeElement.type === 'text'
+        || $(activeElement).closest('.toastui-editor').length > 0
         ) {
           return
         }
 
-        // switch (e.key) {
-        //   case 'f':
-        //     {
-        //       setTimeout(() => $('.select2-search__field').focus(), 0)
-        //     }
-        //     break
-        // }
+        switch (e.key) {
+          case 'f':
+            setTimeout(() => $('search .select2-search__field').first().focus(), 0)
+            break
+          default: break
+        }
       },
       false,
     )
+
+    setTimeout(() => $('search .select2-search__field').focus(), 5)
   },
   computed: {
     groups() {
