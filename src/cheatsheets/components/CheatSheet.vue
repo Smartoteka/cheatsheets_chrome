@@ -1,12 +1,13 @@
 <template>
-  <div    :class="
+  <div
+    :class="
       'cheatsheet ' +
       (cheatsheet.link ? 'link' : 'info') +
       (selected ? ' selected' : '')
     "
     @click="selected = !selected"
     v-click-outside="clickOutside"
-     @contextmenu="onContextMenu($event)"
+    @contextmenu="onContextMenu($event)"
   >
     <div
       class="content"
@@ -18,10 +19,14 @@
           >{{ tag.text }}&nbsp;</span
         >
       </div>
-      <div class="tags" v-if="editMode">
+      <div v-if="editMode">
         <select2 :options="allTags" v-model="editTags"> </select2>
       </div>
-      <div class="code" v-if="!hideContent" :style="editMode?'width:100%':''">
+      <div
+        class="code"
+        v-if="!hideContent"
+        :style="editMode ? 'width:100%' : ''"
+      >
         <Editor
           ref="editor"
           v-if="editMode"
@@ -31,12 +36,29 @@
       </div>
 
       <div class="edit-buttons" v-if="editMode">
+        <span class="label"
+        :style="'visibility:'+(editMode && !hideContent?'visible':'hidden')"
+        >Link:</span>
+        <input
+           :style="'visibility:'+(editMode && !hideContent?'visible':'hidden')"
+          v-model="cheatsheet.link"
+          class="
+            w-full
+            px-4
+            py-2
+            mt-2
+            border
+            rounded-md
+            focus:outline-none focus:ring-1 focus:ring-blue-600
+          "
+        />
         <img src="/images/save.svg" class="save" @click="save" />
         <img src="/images/x.svg" class="close" @click="cancel" />
       </div>
       <Menu
         v-if="mouseFocus && !editMode && !readOnly"
-        :elements="menuElements" :textElements="textMenuElements"
+        :elements="menuElements"
+        :textElements="textMenuElements"
       >
       </Menu>
     </div>
@@ -53,7 +75,10 @@ import Editor from './Editor'
 import Select2 from '@/common/Select2'
 import ClickOutsideEvent from '@/common/directives/ClickOutside'
 import {
-  unwrapCheatSheet, closeTabsByUrlIfOpen, openTabsInNewWindow, openTabs,
+  unwrapCheatSheet,
+  closeTabsByUrlIfOpen,
+  openTabsInNewWindow,
+  openTabs,
   unique,
 } from '@/src_jq/common/commonFunctions'
 import Menu from './menu'
@@ -193,13 +218,15 @@ export default {
     clickOutside(event) {
       if (this.selected) {
         console.log('outside!')
-        if (!(event.ctrlKey || event.shiftKey
-        || (
-          event.target.parentElement
-          && (
-            event.target.parentElement.classList.contains('dropdown')
-            || event.target.parentElement.classList.contains('menu')
-          )))) {
+        if (
+          !(
+            event.ctrlKey
+            || event.shiftKey
+            || (event.target.parentElement
+              && (event.target.parentElement.classList.contains('dropdown')
+                || event.target.parentElement.classList.contains('menu')))
+          )
+        ) {
           this.selected = false
         }
       }
@@ -264,7 +291,7 @@ export default {
       this.editMode = false
       this.mouseFocus = false
 
-      this.cheatsheet.tags = unique(this.editTags.slice(0), el => el.id)
+      this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
       if (this.$refs.editor) {
         this.cheatsheet.content = this.$refs.editor.editor.getMarkdown()
       }
@@ -291,11 +318,16 @@ export default {
       )
     },
     onContextMenu(e) {
+      if ($(e.target).closest('.toastui-editor').length > 0) {
+        return
+      }
       let items = [
         {
           label: 'Copy',
           onClick: () => {
-            let text = JSON.stringify(unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags))
+            let text = JSON.stringify(
+              unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags),
+            )
             navigator.clipboard.writeText(text)
           },
         },
@@ -305,14 +337,13 @@ export default {
         items.push({
           label: 'Paste',
           onClick: () => {
-            navigator.clipboard.readText()
-              .then(text => {
-                let cheatSheet = JSON.parse(text)
+            navigator.clipboard.readText().then((text) => {
+              let cheatSheet = JSON.parse(text)
 
-                this.cheatsheet.tags = cheatSheet.tags
-                this.cheatsheet.link = cheatSheet.link
-                this.cheatsheet.content = cheatSheet.content
-              })
+              this.cheatsheet.tags = cheatSheet.tags
+              this.cheatsheet.link = cheatSheet.link
+              this.cheatsheet.content = cheatSheet.content
+            })
           },
         })
       }
@@ -427,20 +458,21 @@ $sky: #e6f6fe;
     }
 
     .edit-buttons {
-      height: 30px;
-      position: relative;
-      margin-right: 20px;
+      display: flex;
 
+      .label {
+        margin: 5px 5px;
+        vertical-align: middle;
+        line-height: 30px;
+      }
       .close {
-        position: absolute;
-        right: 5px;
+        margin: 5px 5px;
         cursor: pointer;
       }
 
       .save {
-        position: absolute;
-        right: 40px;
         cursor: pointer;
+        margin: 5px 5px;
       }
     }
     hr {
