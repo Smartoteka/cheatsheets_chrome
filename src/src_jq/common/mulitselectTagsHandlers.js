@@ -8,12 +8,13 @@ if (!window.$) {
 let $ = window.$
 
 export function getFilterByFilterTags(getData, getFilterTags) {
+  let filterTags = getFilterTags()
   return (node) => {
     let data = getData(node)
 
     return !data
-      || !data.tags
-      || data.tags.filter(tag => getFilterTags()[tag.id]).length === getFilterTags().count
+      || !data.tags// TODO: tags should compare by id, correct multiselect!
+      || data.tags.filter(tag => filterTags[tag.text]).length === filterTags.count
   }
 }
 
@@ -55,7 +56,7 @@ export function select2UpdateTags(selector, tags) {
     .select2('data')
     .forEach(v => {
       v.index = tags.findIndex(t => t.id === v.id)
-      v.text = tags[v.index].text
+      if (v.index < 0) { dataAdapter.unselect(v) } else { v.text = tags[v.index].text }
     })
 
   select2.trigger('change')

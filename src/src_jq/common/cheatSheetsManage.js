@@ -1,3 +1,5 @@
+import { comparerFuncDesc, comparerFunc } from '@/src_jq/common/rateTags'
+
 function clearGroups(groups) {
   for (let i = 0; i < groups.length; i++) {
     let group = groups[i]
@@ -14,7 +16,7 @@ function clearGroups(groups) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export function cheatsheetsGroup(cheatsheets) {
+export function autoCheatsheetsGroup(cheatsheets) {
   if (cheatsheets.length === 0) {
     return []
   }
@@ -125,7 +127,58 @@ export function cheatsheetsGroup(cheatsheets) {
   clearGroups(groups)
 
   groups = groups.filter(el => el.items.length !== 0 || el.groups.length !== 0)
+
   return groups
 }
 
-// window.cheatsheetsGroup = cheatsheetsGroup;
+export function cheatsheetsGroupByPreparedGroups(cheatsheets) {
+  if (cheatsheets.length === 0) {
+    return []
+  }
+
+  // eslint-disable-next-line no-return-assign
+  cheatsheets.forEach(ch => ch.group = null)
+
+  let groupsMap = {}
+  let id = 1
+  let groups = cheatsheets.filter(el => el.type === 'group')
+    .sort(comparerFuncDesc(gr => gr.tags.length))
+    .map(gr => {
+      let items = cheatsheets.filter(ch => !ch.group
+        && ch.tags
+          .filter(ct => gr.tags.findIndex(gt => ct.id === gt.id) >= 0)
+          .length === gr.tags.length)
+
+      items = items.sort(comparerFuncDesc(el => el === gr))
+
+      let group = {
+        id: parseInt(gr.id + '' + (++id), 10),
+        items: items,
+        commonTagsCount: gr.tags.length,
+        groups: [],
+      }
+
+      items.forEach(ch => {
+        ch.group = group
+
+        if (ch.self) { ch.self.group = group }
+      })
+
+      gr.self = group
+      gr.group = null
+
+      return group
+    })
+
+  // groups = []
+  groups.push({
+    id: parseInt((++id), 10),
+    items: cheatsheets.filter(el => !el.group && !el.self),
+    commonTagsCount: 0,
+    groups: [],
+  })
+
+  groups = groups.filter(el => !el.group && (el.items.length !== 0 || el.groups.length !== 0))
+
+  return groups
+}

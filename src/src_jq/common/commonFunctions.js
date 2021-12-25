@@ -191,10 +191,11 @@ export function getSmartotekaFabric() {
 
 export function unwrapCheatSheet(reactive, tags) {
   let result = {
-    content: reactive.content,
-    date: reactive.date,
-    tags: unique(tags.map((el) => ({ id: el.id, text: el.text })), el => el.id),
     id: reactive.id,
+    type: reactive.type ? reactive.type : 'cheatsheet',
+    date: reactive.date,
+    content: reactive.content,
+    tags: unique(tags.map((el) => ({ id: el.id, text: el.text })), el => el.id),
   }
 
   if (reactive.link) { result.link = reactive.link }

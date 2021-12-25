@@ -22,10 +22,6 @@ class SmartotekaFabricLocalStorage {
     })
   }
 
-  #getSmartoteka() {
-    return this.#getFromStorage('Smartoteka', {})
-  }
-
   #getCheatSheets() {
     return this.#getFromStorage('CheatSheets', [])
   }
@@ -34,20 +30,12 @@ class SmartotekaFabricLocalStorage {
     return this.#getFromStorage('Tags', [])
   }
 
-  #getSessions() {
-    return this.#getFromStorage('Sessions', [])
-  }
-
   #getSpeedDeal() {
     return this.#getFromStorage('SpeedDeal', {})
   }
 
   #saveTags(tags) {
     return new Promise(r => chrome.storage.local.set({ Tags: unique(tags, el => el.id) }, () => r()))
-  }
-
-  #saveSessions(sessions) {
-    return new Promise(r => chrome.storage.local.set({ Sessions: sessions }, () => r()))
   }
 
   #saveSpeedDeal(speedDeal) {
@@ -76,37 +64,16 @@ class SmartotekaFabricLocalStorage {
         downloadAnchorNode.remove()
       }
 
-      search(query) {
-        let promise = new Promise((resolve, reject) => {
-          parent.#getSmartoteka()
-            .then((smartoteka) => {
-              let searchResults = smartoteka[query]
-
-              resolve(searchResults)
-            })
-        })
-
-        return promise
-      }
-
-      isUseful(url) {
-        return new Promise((resolve) => resolve(url.charCodeAt(url.length - 1) % 2 === 0 ? [1] : []))
-      }
-
       export(fileName) {
         let promise = new Promise((resolve, reject) => {
           Promise.all([
-            parent.#getSmartoteka(),
             parent.#getTags(),
-            parent.#getSessions(),
             parent.#getCheatSheets(),
           ])
-            .then(([Smartoteka, Tags, Sessions, CheatSheets]) => {
+            .then(([Tags, CheatSheets]) => {
               this.#downloadObjectAsJson(
                 {
-                  Smartoteka,
                   Tags,
-                  Sessions,
                   CheatSheets,
                 },
                 fileName,
@@ -141,46 +108,8 @@ class SmartotekaFabricLocalStorage {
         return parent.#getTags()
       }
 
-      getSessions() {
-        return parent.#getSessions()
-      }
-
       getCheatSheets() {
         return parent.#getCheatSheets()
-      }
-
-      getSelectSessionId() {
-        return parent.#getFromStorage('selectSessionId', null)
-      }
-
-      getSelectSession() {
-        return new Promise(r => {
-          Promise.all([
-            this.getSessions(),
-            this.getSelectSessionId()])
-            .then((values) => {
-              let [sessions, sessionId] = values
-
-              let index = sessions.findIndex(el => el.date === sessionId)
-
-              let session = index < 0 ? null : sessions[index]
-
-              r(session)
-            })
-        })
-      }
-
-      getSession(sessionId) {
-        return new Promise(r => {
-          this.getSessions()
-            .then((sessions) => {
-              let index = sessions.findIndex(el => el.date === sessionId)
-
-              let session = index < 0 ? null : sessions[index]
-
-              r(session)
-            })
-        })
       }
 
       getSpeedDeal() {
@@ -199,63 +128,17 @@ class SmartotekaFabricLocalStorage {
 
       }
 
-      add(query, content) {
-        parent.#getSmartoteka()
-          .then((smartoteka) => {
-            let queryLinks = smartoteka[query]
-
-            if (!queryLinks) {
-              queryLinks = smartoteka[query] = [content]
-            } else if (queryLinks.indexOf(content) < 0) queryLinks.push(content)
-
-            parent.#save(smartoteka)
-          })
-      }
-
-      remove(query, answer) {
-        return new Promise(resolve => {
-          parent.#getSmartoteka()
-            .then((smartoteka) => {
-              let queryLinks = smartoteka[query]
-
-              if (queryLinks) {
-                let index = queryLinks.indexOf(answer)
-
-                if (index > -1) {
-                  queryLinks.splice(index, 1)
-
-                  if (queryLinks.length === 0) {
-                    delete smartoteka[query]
-                  }
-
-                  parent.#save(smartoteka)
-                  resolve()
-                }
-              }
-            })
-        })
-      }
-
-      setSelectSession(sessionId) {
-        return new Promise(r => chrome.storage.local.set({ selectSessionId: sessionId }, () => r()))
-      }
-
       saveCheatSheets(cheatSheets) {
         parent.#saveCheatSheets(cheatSheets)
       }
 
       import(json) {
-        let sessions = json.Sessions || []
         let cheatSheets = json.CheatSheets || []
-
-        parent.#save(json.Smartoteka || {})
-        parent.#saveSessions(sessions)
         parent.#saveCheatSheets(cheatSheets)
 
         let allTags = []
 
         cheatSheets.forEach(el => allTags = allTags.concat(el.tags))
-        sessions.forEach(el => allTags = allTags.concat(el.tags))
         allTags = allTags.concat(json.Tags || [])
 
         allTags = unique(allTags.filter(el => el), el => el.id)
@@ -282,18 +165,6 @@ class SmartotekaFabricLocalStorage {
         })
       }
 
-      addSession(session) {
-        return new Promise(resolve => {
-          parent.#getSessions()
-            .then(sessions => {
-              sessions = [...sessions, session]
-              parent.#saveSessions(sessions)
-
-              resolve()
-            })
-        })
-      }
-
       addCheatSheet(cheatSheet) {
         return this.addCheatSheets([cheatSheet])
       }
@@ -306,20 +177,6 @@ class SmartotekaFabricLocalStorage {
               parent.#saveCheatSheets(cheatSheets)
 
               resolve()
-            })
-        })
-      }
-
-      updateSession(session) {
-        return new Promise(resolve => {
-          parent.#getSessions()
-            .then(sessions => {
-              let index = sessions.findIndex(el => el.date === session.date)
-              if (index !== -1) {
-                sessions[index] = session
-              }
-              parent.#saveSessions(sessions)
-                .then(() => resolve())
             })
         })
       }
@@ -337,20 +194,6 @@ class SmartotekaFabricLocalStorage {
                 })
 
               parent.#saveCheatSheets(cheatSheets)
-                .then(() => resolve())
-            })
-        })
-      }
-
-      deleteSession(session) {
-        return new Promise(resolve => {
-          parent.#getSessions()
-            .then(sessions => {
-              let index = sessions.findIndex(el => el.query === session.query && el.date === session.date)
-              if (index !== -1) {
-                sessions.splice(index, 1)
-              }
-              parent.#saveSessions(sessions)
                 .then(() => resolve())
             })
         })
@@ -379,4 +222,3 @@ class SmartotekaFabricLocalStorage {
 }
 
 export default SmartotekaFabricLocalStorage
-// window.SmartotekaFabricLocalStorage = SmartotekaFabricLocalStorage

@@ -6,7 +6,9 @@ export function comparer(a, b) {
       ? 1
       : 0)
 }
-let comparerFunc = (get) => (a, b) => comparer(get(a), get(b))
+export function comparerFunc(get) { return (a, b) => comparer(get(a), get(b)) }
+
+export function comparerFuncDesc(get) { return (a, b) => comparer(get(a), get(b)) * -1 }
 
 let comparerCombine = (comparators) => (a, b) => {
   for (let i = 0; i < comparators.length; i++) {

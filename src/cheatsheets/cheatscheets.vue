@@ -129,7 +129,7 @@ import {
   getGroupTags,
   openTabs,
 } from '@/src_jq/common/commonFunctions'
-import { cheatsheetsGroup } from '@/src_jq/common/cheatSheetsManage'
+import { cheatsheetsGroupByPreparedGroups } from '@/src_jq/common/cheatSheetsManage'
 import { getFilterByFilterTags } from '@/src_jq/common/mulitselectTagsHandlers'
 
 window.$ = jQuery
@@ -166,6 +166,7 @@ export default {
           isAllow: () => this.popup,
         },
         { title: 'Session' },
+        { title: 'Group' },
       ],
       selectVariants: [
         {
@@ -205,15 +206,20 @@ export default {
       sender,
       sendResponse,
     ) {
-      setTimeout(() => {
-        vm.addCheatSheet()
-        vm.addMode = 'Tab'
-      }, 10)
+      if (request === 'to-add') {
+        console.log("request === 'to-add'")
+        setTimeout(() => {
+          vm.addCheatSheet()
+          vm.addMode = 'Tab'
+        }, 10)
+      }
       sendResponse('success!')
     })
     let params = new URLSearchParams(window.location.search)
 
     if (params.get('cmd') === 'to-add') {
+      console.log("params.get('cmd') === 'to-add'")
+
       setTimeout(() => {
         vm.addCheatSheet()
         vm.addMode = 'Tab'
@@ -232,18 +238,23 @@ export default {
           return
         }
 
-        if (activeElement.type === 'textarea'
-        || activeElement.type === 'text'
-        || $(activeElement).closest('.toastui-editor').length > 0
+        if (
+          activeElement.type === 'textarea'
+          || activeElement.type === 'text'
+          || $(activeElement).closest('.toastui-editor').length > 0
         ) {
           return
         }
 
         switch (e.key) {
           case 'f':
-            setTimeout(() => $('search .select2-search__field').first().focus(), 0)
+            setTimeout(
+              () => $('search .select2-search__field').first().focus(),
+              0,
+            )
             break
-          default: break
+          default:
+            break
         }
       },
       false,
@@ -254,7 +265,7 @@ export default {
   computed: {
     groups() {
       let cheatsheets = this.searchResults
-      let result = cheatsheetsGroup(cheatsheets)
+      let result = cheatsheetsGroupByPreparedGroups(cheatsheets)
 
       return result
     },
@@ -292,6 +303,9 @@ export default {
 
       switch (value) {
         case 'Cheat Sheet':
+          if (this.newCheatSheet) { this.newCheatSheet.link = '' }
+          break
+        case 'Group':
           break
 
         case 'Session':
@@ -363,9 +377,25 @@ export default {
         content: '',
         tags: this.selected.slice(0),
       }
+
+      if (this.newCheatSheet.tags.length > 0) {
+        this.addMode = 'Group'
+      }
     },
     saveNewCheatSheet(cheatsheet) {
       switch (this.addMode) {
+        case 'Group':
+          cheatsheet.type = 'group'
+
+          this.smartotekaFabric
+            .KBManager()
+            .addCheatSheet(cheatsheet)
+            .then(() => {
+              this.resetEditState()
+
+              this.refresh()
+            })
+          break
         case 'Cheat Sheet':
         case 'Tab':
           this.smartotekaFabric

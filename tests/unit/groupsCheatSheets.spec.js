@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { cheatsheetsGroup } from '../../src/src_jq/common/cheatSheetsManage'
+import { autoCheatsheetsGroup } from '../../src/src_jq/common/cheatSheetsManage'
 
 describe('Cheatsheets group', () => {
   it('join two with equal part', () => {
@@ -37,7 +37,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(1)
     expect(groups[0].commonTagsCount).to.eq(3)
@@ -61,7 +61,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(1)
     expect(groups[0].commonTagsCount).to.eq(0)
@@ -93,7 +93,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(1)
     expect(groups[0].commonTagsCount).to.eq(0)
@@ -131,7 +131,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(2)
     expect(groups[0].commonTagsCount).to.eq(0)
@@ -173,7 +173,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(1)
     expect(groups[0].commonTagsCount).to.eq(1)
@@ -226,7 +226,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(2)
     expect(groups[0].commonTagsCount).to.eq(0)
@@ -290,7 +290,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(2)
     expect(groups[0].commonTagsCount).to.eq(0)
@@ -340,7 +340,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     console.log(JSON.stringify(groups, null, 2))
 
@@ -417,7 +417,7 @@ describe('Cheatsheets group', () => {
       }],
     }]
 
-    let groups = cheatsheetsGroup(cheatsheets)
+    let groups = autoCheatsheetsGroup(cheatsheets)
 
     expect(groups.length).to.eq(2)
     expect(groups[1].commonTagsCount).to.eq(1)
@@ -488,7 +488,7 @@ describe('Cheatsheets group', () => {
     }],
   }]
   it('Why i have 2 recodrs after group?', () => {
-    let groups = cheatsheetsGroup(cheatsheetsChromeAPITab)
+    let groups = autoCheatsheetsGroup(cheatsheetsChromeAPITab)
 
     console.log(JSON.stringify(groups))
 

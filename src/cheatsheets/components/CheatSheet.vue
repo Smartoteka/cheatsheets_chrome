@@ -15,7 +15,7 @@
       @mouseleave="mouseFocus = false"
     >
       <div :class="'tags ' + (editMode ? 'hide' : '')">
-        <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.id)"
+        <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
           >{{ tag.text }}&nbsp;</span
         >
       </div>

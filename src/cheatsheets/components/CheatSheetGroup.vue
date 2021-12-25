@@ -37,12 +37,12 @@
       <!-- group.items.slice(0, 2) -->
       <div class="content">
         <div class="row">
-          <div
-            v-for="cheatsheet in showChildren ? group.items : []"
-            :key="cheatsheet.id"
-          >
+
             <!-- v-if="cheatsheet.type === 'cheatsheet'" -->
             <CheatSheet
+               v-for="cheatsheet in showChildren ? group.items : []"
+              :key="cheatsheet.id"
+
               :cheatsheet="cheatsheet"
               :commonTagsCount="group.commonTagsCount"
               :allTags="allTags"
@@ -52,7 +52,7 @@
               draggable="true"
               @dragstart="startCheatSheetDrag($event, cheatsheet)"
             ></CheatSheet>
-          </div>
+
         </div>
         <div class="row" v-if="group.groups.length > 0 && showChildren">
           <div class="column">
