@@ -139,10 +139,9 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets) {
   // eslint-disable-next-line no-return-assign
   cheatsheets.forEach(ch => ch.group = null)
 
-  let groupsMap = {}
   let id = 1
   let groups = cheatsheets.filter(el => el.type === 'group')
-    .sort(comparerFuncDesc(gr => gr.tags.length))
+    .sort(comparerFuncDesc(gr => !gr.tags || gr.tags.length))
     .map(gr => {
       let items = cheatsheets.filter(ch => !ch.group
         && ch.tags

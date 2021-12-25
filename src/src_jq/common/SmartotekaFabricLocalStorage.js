@@ -170,7 +170,15 @@ class SmartotekaFabricLocalStorage {
       }
 
       addCheatSheets(newCheatSheets) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
+          if (newCheatSheets.length === 0) {
+            resolve()
+            return
+          }
+          if (!newCheatSheets[0].tags) {
+            reject('Cheatsheet should contains tags!')
+            return
+          }
           parent.#getCheatSheets()
             .then(cheatSheets => {
               cheatSheets = [...cheatSheets, ...newCheatSheets]

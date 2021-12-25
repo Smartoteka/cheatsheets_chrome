@@ -382,7 +382,8 @@ export default {
         this.addMode = 'Group'
       }
     },
-    saveNewCheatSheet(cheatsheet) {
+    saveNewCheatSheet(event) {
+      let cheatsheet = event.cheatsheet
       switch (this.addMode) {
         case 'Group':
           cheatsheet.type = 'group'
@@ -507,18 +508,28 @@ export default {
         (el) => el.id,
       )
     },
-    updateCheatSheet(cheatsheet) {
+    updateCheatSheet(event) {
       this.smartotekaFabric
         .KBManager()
-        .updateCheatSheets([cheatsheet])
-        .then(() => this.refresh())
+        .updateCheatSheets([event.cheatsheet])
+        .then(() => {
+          if (event.tagsIsModified) { this.refresh() }
+        })
     },
-    removeCheatSheets(cheatsheets) {
+    removeCheatSheets(event) {
       if (confirm('Are you sure?')) {
+        let group = event.group
+
         this.smartotekaFabric
           .KBManager()
-          .deleteCheatSheets(cheatsheets)
-          .then(() => this.refresh())
+          .deleteCheatSheets(event.cheatsheets)
+          .then(() => {
+            event.cheatsheets.forEach(ch => {
+              group.items.splice(group.items.findIndex(item => ch.id === item.id), 1)
+              ch.content = ''
+            })
+            if (group.items.length === 0) { this.refresh() }
+          })
       }
     },
     sessionTabsToGroup(event) {
@@ -540,19 +551,22 @@ export default {
       }
     },
     dropCheatSheetsToGroup(event) {
+      if (event.cheatSheets.length === 0) { return }
+
       let group = event.group
       let tags = getGroupTags(group)
 
       let cheatSheets = event.cheatsheets.map((el) => unwrapCheatSheet(el, tags))
 
-      if (cheatSheets.length > 0) {
-        this.smartotekaFabric
-          .KBManager()
-          .updateCheatSheets(cheatSheets)
-          .then(() => {
-            cheatSheets.forEach((el) => group.items.push(el))
+      this.smartotekaFabric
+        .KBManager()
+        .updateCheatSheets(cheatSheets)
+        .then(() => {
+          cheatSheets.forEach((el) => {
+            el.group = group
+            group.items.push(el)
           })
-      }
+        })
     },
     google() {
       let tags = this.selected.map((el) => el.text).join(' ')

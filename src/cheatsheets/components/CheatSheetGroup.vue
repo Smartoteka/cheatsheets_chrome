@@ -21,8 +21,10 @@
           </span>
           <img
             class="expand ctrl-img"
-            :style="mouseFocus?'':'visibility:hidden'"
-            :src="showChildren?'/images/arrow-up.svg':'/images/arrow-down.svg'"
+            :style="mouseFocus ? '' : 'visibility:hidden'"
+            :src="
+              showChildren ? '/images/arrow-up.svg' : '/images/arrow-down.svg'
+            "
             @click.self="showChildren = !showChildren"
           />
         </div>
@@ -37,22 +39,24 @@
       <!-- group.items.slice(0, 2) -->
       <div class="content">
         <div class="row">
-
-            <!-- v-if="cheatsheet.type === 'cheatsheet'" -->
-            <CheatSheet
-               v-for="cheatsheet in showChildren ? group.items : []"
-              :key="cheatsheet.id"
-
-              :cheatsheet="cheatsheet"
-              :commonTagsCount="group.commonTagsCount"
-              :allTags="allTags"
-              v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
-              v-on:remove-cheatsheets="$emit('remove-cheatsheets', $event)"
-              v-on:move-to-tags="$emit('move-to-tags', $event)"
-              draggable="true"
-              @dragstart="startCheatSheetDrag($event, cheatsheet)"
-            ></CheatSheet>
-
+          <!-- v-if="cheatsheet.type === 'cheatsheet'" -->
+          <CheatSheet
+            v-for="cheatsheet in showChildren ? group.items : []"
+            :key="cheatsheet.id"
+            :cheatsheet="cheatsheet"
+            :commonTagsCount="group.commonTagsCount"
+            :allTags="allTags"
+            v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
+            v-on:remove-cheatsheets="
+              $emit('remove-cheatsheets', {
+                group: this.group,
+                cheatsheets: $event,
+              })
+            "
+            v-on:move-to-tags="$emit('move-to-tags', $event)"
+            draggable="true"
+            @dragstart="startCheatSheetDrag($event, cheatsheet)"
+          ></CheatSheet>
         </div>
         <div class="row" v-if="group.groups.length > 0 && showChildren">
           <div class="column">
@@ -89,6 +93,7 @@ import {
   getGroupTags,
   getAllTabs,
   closeTabs,
+  unwrapCheatSheet,
 } from '@/src_jq/common/commonFunctions'
 
 export default {
@@ -163,12 +168,13 @@ export default {
             handler: function () {
               let currentTabs = that.getTabs()
 
-              getAllTabs()
-                .then((tabs) => {
-                  let otherTabs = tabs.filter(tab => currentTabs.findIndex(st => st.url === tab.url) === -1)
+              getAllTabs().then((tabs) => {
+                let otherTabs = tabs.filter(
+                  (tab) => currentTabs.findIndex((st) => st.url === tab.url) === -1,
+                )
 
-                  closeTabs(otherTabs)
-                })
+                closeTabs(otherTabs)
+              })
             },
           },
         ])
@@ -182,7 +188,10 @@ export default {
             handler: () => {
               let cheatsheets = that.getSelected()
 
-              that.$emit('remove-cheatsheets', cheatsheets)
+              that.$emit('remove-cheatsheets', {
+                group: this.group,
+                cheatsheets,
+              })
             },
           },
         ])
@@ -206,11 +215,16 @@ export default {
   methods: {
     startCheatSheetDrag(evt, item) {
       let cheatsheets = item.selected
-        ? this.items.filter((el) => el.selected)
-        : [item]
+        ? this.items
+          .filter((el) => el.selected)
+          .map((el) => unwrapCheatSheet(el, el.tags))
+        : [unwrapCheatSheet(item, item.tags)]
       evt.dataTransfer.dropEffect = 'move'
       evt.dataTransfer.effectAllowed = 'move'
-      evt.dataTransfer.setData('data', JSON.stringify({ cheatsheets: cheatsheets, type: 'moveCheatSheets' }))
+      evt.dataTransfer.setData(
+        'data',
+        JSON.stringify({ cheatsheets: cheatsheets, type: 'moveCheatSheets' }),
+      )
     },
     getSelected() {
       return this.group.items.filter((el) => el.selected)

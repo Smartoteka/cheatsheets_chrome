@@ -47,6 +47,11 @@ export function secondRunImmediately(func, ms) {
   return wrapper
 }
 
+export function arraysIsEqual(array1, array2, get) {
+  return array1.length === array2.length
+  && array1.every(function (value, index) { return get(value) === get(array2[index]) })
+}
+
 export function moveInArray(arr, fromIndex, toIndex) {
   let element = arr[fromIndex]
   arr.splice(fromIndex, 1)

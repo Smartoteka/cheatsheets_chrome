@@ -80,6 +80,7 @@ import {
   openTabsInNewWindow,
   openTabs,
   unique,
+  arraysIsEqual,
 } from '@/src_jq/common/commonFunctions'
 import Menu from './menu'
 
@@ -291,14 +292,22 @@ export default {
       this.editMode = false
       this.mouseFocus = false
 
-      this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
+      let tagsIsModified = !arraysIsEqual(this.editTags, this.cheatsheet.tags, el => el.text)
+      if (tagsIsModified) {
+        this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
+      }
+
       if (this.$refs.editor) {
         this.cheatsheet.content = this.$refs.editor.editor.getMarkdown()
       }
 
       let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
 
-      this.$emit('update-cheatsheet', saveCheatSheet)
+      this.$emit('update-cheatsheet',
+        {
+          cheatsheet: saveCheatSheet,
+          tagsIsModified,
+        })
     },
     cancel() {
       this.editMode = false
