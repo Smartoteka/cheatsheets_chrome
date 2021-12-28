@@ -330,6 +330,9 @@ export default {
       if ($(e.target).closest('.toastui-editor').length > 0) {
         return
       }
+      // prevent the browser's default menu
+      e.preventDefault()
+
       let items = [
         {
           label: 'Copy',
@@ -356,8 +359,7 @@ export default {
           },
         })
       }
-      // prevent the browser's default menu
-      e.preventDefault()
+
       // shou our menu
       this.$contextmenu({
         x: e.x,

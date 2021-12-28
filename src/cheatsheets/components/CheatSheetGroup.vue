@@ -10,6 +10,8 @@
         class="header"
         @mouseenter="mouseFocus = true"
         @mouseleave="mouseFocus = false"
+        @click.self="showChildren = !showChildren"
+        @contextmenu="onHeaderContextMenu($event)"
       >
         <div class="title">
           <span
@@ -39,7 +41,6 @@
       <!-- group.items.slice(0, 2) -->
       <div class="content">
         <div class="row">
-          <!-- v-if="cheatsheet.type === 'cheatsheet'" -->
           <CheatSheet
             v-for="cheatsheet in showChildren ? group.items : []"
             :key="cheatsheet.id"
@@ -197,6 +198,17 @@ export default {
         ])
       }
 
+      menuItems.push(
+        {
+          text: 'Delete group',
+          handler: () => {
+            this.$emit('remove-cheatsheets', {
+              group: this.group,
+              cheatsheets: this.group.items.filter(el => el.self && el.self.id === this.group.id),
+            })
+          },
+        },
+      )
       return menuItems
     },
     isContainsLink() {
@@ -276,6 +288,18 @@ export default {
         default:
           throw new Error('Unexpected type of drop ' + data.type)
       }
+    },
+    onHeaderContextMenu(e) {
+      e.preventDefault()
+
+      let items = this.menuElements.map(el => ({ label: el.text, onClick: el.handler }))
+
+      // shou our menu
+      this.$contextmenu({
+        x: e.x,
+        y: e.y,
+        items: items,
+      })
     },
   },
 }

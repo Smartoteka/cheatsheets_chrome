@@ -12,7 +12,6 @@
     "test": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "@imengyu/vue3-context-menu": "^1.0.8",
     "@toast-ui/editor": "^3.1.1",
     "@vueuse/core": "^6.3.3",
     "axios": "^0.21.4",
