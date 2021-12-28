@@ -88,7 +88,7 @@ window.$ = $
 
 export default {
   name: 'CheatSheet',
-  emits: ['move-to-tags', 'cancel-edit'],
+  emits: ['move-to-tags', 'cancel-edit', 'remove-cheatsheets'],
   components: {
     Select2,
     Editor,

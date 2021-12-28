@@ -42,8 +42,8 @@ class SmartotekaFabricLocalStorage {
     return new Promise(r => chrome.storage.local.set({ SpeedDeal: speedDeal }, () => r()))
   }
 
-  #saveCheatSheets(cheatSheets) {
-    return new Promise(r => chrome.storage.local.set({ CheatSheets: cheatSheets }, () => r()))
+  #saveCheatSheets(cheatsheets) {
+    return new Promise(r => chrome.storage.local.set({ CheatSheets: cheatsheets }, () => r()))
   }
 
   queriesProvider() {
@@ -128,17 +128,17 @@ class SmartotekaFabricLocalStorage {
 
       }
 
-      saveCheatSheets(cheatSheets) {
-        parent.#saveCheatSheets(cheatSheets)
+      saveCheatSheets(cheatsheets) {
+        parent.#saveCheatSheets(cheatsheets)
       }
 
       import(json) {
-        let cheatSheets = json.CheatSheets || []
-        parent.#saveCheatSheets(cheatSheets)
+        let cheatsheets = json.CheatSheets || []
+        parent.#saveCheatSheets(cheatsheets)
 
         let allTags = []
 
-        cheatSheets.forEach(el => allTags = allTags.concat(el.tags))
+        cheatsheets.forEach(el => allTags = allTags.concat(el.tags))
         allTags = allTags.concat(json.Tags || [])
 
         allTags = unique(allTags.filter(el => el), el => el.id)
@@ -180,9 +180,9 @@ class SmartotekaFabricLocalStorage {
             return
           }
           parent.#getCheatSheets()
-            .then(cheatSheets => {
-              cheatSheets = [...cheatSheets, ...newCheatSheets]
-              parent.#saveCheatSheets(cheatSheets)
+            .then(cheatsheets => {
+              cheatsheets = [...cheatsheets, ...newCheatSheets]
+              parent.#saveCheatSheets(cheatsheets)
 
               resolve()
             })
@@ -192,16 +192,16 @@ class SmartotekaFabricLocalStorage {
       updateCheatSheets(updateCheatSheets) {
         return new Promise(resolve => {
           parent.#getCheatSheets()
-            .then(cheatSheets => {
+            .then(cheatsheets => {
               updateCheatSheets
                 .forEach(cheatSheet => {
-                  let index = cheatSheets.findIndex(el => el.id === cheatSheet.id)
+                  let index = cheatsheets.findIndex(el => el.id === cheatSheet.id)
                   if (index !== -1) {
-                    cheatSheets[index] = cheatSheet
+                    cheatsheets[index] = cheatSheet
                   }
                 })
 
-              parent.#saveCheatSheets(cheatSheets)
+              parent.#saveCheatSheets(cheatsheets)
                 .then(() => resolve())
             })
         })
@@ -210,15 +210,15 @@ class SmartotekaFabricLocalStorage {
       deleteCheatSheets(deleteCheatSheets) {
         return new Promise(resolve => {
           parent.#getCheatSheets()
-            .then(cheatSheets => {
+            .then(cheatsheets => {
               deleteCheatSheets.forEach(cheatSheet => {
-                let index = cheatSheets.findIndex(el => el.content === cheatSheet.content && el.id === cheatSheet.id)
+                let index = cheatsheets.findIndex(el => el.content === cheatSheet.content && el.id === cheatSheet.id)
                 if (index !== -1) {
-                  cheatSheets.splice(index, 1)
+                  cheatsheets.splice(index, 1)
                 }
               })
 
-              parent.#saveCheatSheets(cheatSheets)
+              parent.#saveCheatSheets(cheatsheets)
                 .then(() => resolve())
             })
         })

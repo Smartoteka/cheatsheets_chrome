@@ -155,7 +155,7 @@ export default {
       distributeTabToGroups: false,
       selected: [],
       options: [],
-      cheatSheets: [],
+      cheatsheets: [],
       newCheatSheet: null,
       sesstionTabs: [],
       addMode: 'Cheat Sheet',
@@ -289,7 +289,7 @@ export default {
         () => filterTags,
       )
 
-      return (this.cheatSheets || []).filter(
+      return (this.cheatsheets || []).filter(
         (cheatsheet) => filterTags[cheatsheet.query] || filterByTags(cheatsheet),
       )
     },
@@ -492,12 +492,12 @@ export default {
           // })
         })
     },
-    refreshByData(cheatSheets) {
-      this.cheatSheets = cheatSheets
+    refreshByData(cheatsheets) {
+      this.cheatsheets = cheatsheets
 
       let allTags = []
 
-      cheatSheets.forEach((el) => {
+      cheatsheets.forEach((el) => {
         allTags = allTags.concat(el.tags)
 
         return 0
@@ -537,32 +537,36 @@ export default {
       let group = event.group
       let tags = getGroupTags(group)
 
-      let cheatSheets = this.sesstionTabs
+      let cheatsheets = this.sesstionTabs
         .filter((el) => tabsIds.indexOf(el.id) >= 0)
         .map((el) => unwrapCheatSheet(el, tags))
 
-      if (cheatSheets.length > 0) {
+      if (cheatsheets.length > 0) {
         this.smartotekaFabric
           .KBManager()
-          .addCheatSheets(cheatSheets)
+          .addCheatSheets(cheatsheets)
           .then(() => {
-            cheatSheets.forEach((el) => group.items.push(el))
+            cheatsheets.forEach((el) => group.items.push(el))
           })
       }
     },
     dropCheatSheetsToGroup(event) {
-      if (event.cheatSheets.length === 0) { return }
+      if (event.cheatsheets.length === 0) { return }
 
       let group = event.group
       let tags = getGroupTags(group)
 
-      let cheatSheets = event.cheatsheets.map((el) => unwrapCheatSheet(el, tags))
+      let isMove = event.event.dataTransfer.effectAllowed === 'move'
+
+      let cheatsheets = event.cheatsheets
+        .map((el) => unwrapCheatSheet(el,
+          unique(isMove ? tags : tags.concat(el.tags), ch => ch.id)))
 
       this.smartotekaFabric
         .KBManager()
-        .updateCheatSheets(cheatSheets)
+        .updateCheatSheets(cheatsheets)
         .then(() => {
-          cheatSheets.forEach((el) => {
+          cheatsheets.forEach((el) => {
             el.group = group
             group.items.push(el)
           })

@@ -3,7 +3,10 @@
 </template>
 <script>
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer'
+import jQuery from 'jquery'
 import { optionsMixin } from './mixin/option'
+
+let $ = jQuery
 
 export default {
   name: 'ToastuiEditorViewer',
@@ -40,6 +43,9 @@ export default {
     }
 
     this.editor = new Viewer(options)
+    this.$nextTick(() => {
+      $('a', this.$refs.toastuiEditorViewer).attr('target', '_blank')
+    })
   },
   updated() {
     let options = {
@@ -49,6 +55,9 @@ export default {
 
     options.initialValue = this.initialValue
     this.editor = new Viewer(options)
+    this.$nextTick(() => {
+      $('a', this.$refs.toastuiEditorViewer).attr('target', '_blank')
+    })
   },
   methods: {
     getRootElement() {

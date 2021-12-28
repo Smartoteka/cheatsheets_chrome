@@ -213,15 +213,16 @@ export default {
     // },
   },
   methods: {
-    startCheatSheetDrag(evt, item) {
+    startCheatSheetDrag(event, item) {
       let cheatsheets = item.selected
-        ? this.items
+        ? this.group.items
           .filter((el) => el.selected)
           .map((el) => unwrapCheatSheet(el, el.tags))
         : [unwrapCheatSheet(item, item.tags)]
-      evt.dataTransfer.dropEffect = 'move'
-      evt.dataTransfer.effectAllowed = 'move'
-      evt.dataTransfer.setData(
+      const cmdType = event.ctrlKey ? 'copy' : 'move'
+      event.dataTransfer.dropEffect = cmdType
+      event.dataTransfer.effectAllowed = cmdType
+      event.dataTransfer.setData(
         'data',
         JSON.stringify({ cheatsheets: cheatsheets, type: 'moveCheatSheets' }),
       )
@@ -253,19 +254,21 @@ export default {
       event.preventDefault()
       event.stopPropagation()
     },
-    onDrop(evt) {
-      const dataStr = evt.dataTransfer.getData('data')
+    onDrop(event) {
+      const dataStr = event.dataTransfer.getData('data')
       let data = JSON.parse(dataStr)
 
       switch (data.type) {
         case 'sessionTabs':
           this.$emit('drop-session-tabs-to-group', {
+            event: event,
             ids: data.ids,
             group: this.group,
           })
           break
         case 'moveCheatSheets':
           this.$emit('drop-cheat-sheets-to-group', {
+            event: event,
             cheatsheets: data.cheatsheets,
             group: this.group,
           })
