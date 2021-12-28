@@ -26,3 +26,5 @@ tests/screenshots/extension/*
 
 .vscode
 /package-lock.json
+/.env.development
+/.env.production

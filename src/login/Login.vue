@@ -24,7 +24,7 @@
       <h3 class="text-2xl font-bold text-center">
         <img
           class="loading"
-          :style="'visibility:' + (requestSend ? 'visible' : 'hidden')"
+          :style="'visibility:' + (requestSending ? 'visible' : 'hidden')"
           src="/images/loading.gif"
         />Login to your account
       </h3>
@@ -72,7 +72,7 @@
         </div>
         <div class="flex items-baseline justify-between">
           <button
-            :disabled="requestSend"
+            :disabled="requestSending"
             class="
               px-6
               py-2
@@ -87,7 +87,7 @@
             Login
           </button>
           <button
-            :disabled="requestSend"
+            :disabled="requestSending"
             class="
               px-6
               py-2
@@ -116,7 +116,7 @@
 <script>
 import storage from '@/utils/storage'
 import { redirectCurrentTab } from '@/src_jq/common/commonFunctions'
-import axios from '@/services/axios'
+import api from '@/services/api'
 
 export default {
   name: 'Login',
@@ -129,7 +129,7 @@ export default {
       emailMessage: '',
       loginMessage: '',
       sendMessage: '',
-      requestSend: false,
+      requestSending: false,
     }
   },
   props: {},
@@ -156,73 +156,61 @@ export default {
       }
       return valid
     },
-    loginHandler() {
+    async loginHandler() {
       if (!this.isValid()) {
         return false
       }
 
-      if (this.requestSend) {
+      if (this.requestSending) {
         return
       }
-      this.requestSend = true
 
-      axios
-        .put('/Main', {
-          login: this.login,
-          email: this.email,
-          extId: chrome.runtime.id,
-          version: chrome.runtime.getManifest().version,
-        })
-        .then((response) => {
-          this.requestSend = false
-          let data = response.data
+      this.requestSending = true
 
-          if (data.isSuccess && data.result) {
-            storage
-              .set({ 'app-uuid': data.result })
-              .then(() => redirectCurrentTab('/cheatsheets/page.html'))
-          } else {
-            this.sendMessage = data.displayMessage
-          }
-        })
-        .catch((e) => {
-          this.requestSend = false
-          this.sendMessage = 'An error occurred while sending. Try it later or write for help'
-        })
+      try {
+        // use password instead of login
+        const { isSuccess, result, displayMessage } = await api.login(this.login, this.email)
+
+        if (isSuccess && result) {
+          await storage.set({ 'app-uuid': result })
+          // TODO needs to be done with a vue-router
+          redirectCurrentTab('/cheatsheets/page.html')
+        } else {
+          this.sendMessage = displayMessage
+        }
+      } catch (e) {
+        this.sendMessage = 'An error occurred while sending. Try it later or write for help'
+      } finally {
+        this.requestSending = false
+      }
     },
-    registerHandler() {
+    async registerHandler() {
       if (!this.isValid()) {
         return false
       }
 
-      if (this.requestSend) {
+      if (this.requestSending) {
         return
       }
-      this.requestSend = true
 
-      axios
-        .post('/Main', {
-          login: this.login,
-          email: this.email,
-          extId: chrome.runtime.id,
-          version: chrome.runtime.getManifest().version,
-        })
-        .then((response) => {
-          this.requestSend = false
-          let data = response.data
+      this.requestSending = true
 
-          if (data.isSuccess && data.result) {
-            storage
-              .set({ 'app-uuid': data.result })
-              .then(() => redirectCurrentTab('/cheatsheets/page.html'))
-          } else {
-            this.sendMessage = data.displayMessage
-          }
-        })
-        .catch((e) => {
-          this.requestSend = false
-          this.sendMessage = 'An error occurred while sending. Try it later or write for help'
-        })
+      try {
+        // use password instead of login
+        const { isSuccess, result, displayMessage } = await api.register(this.login, this.email)
+
+        if (isSuccess && result) {
+          await storage.set({ 'app-uuid': result })
+          // TODO needs to be done with a vue-router
+          redirectCurrentTab('/cheatsheets/page.html')
+        } else {
+          this.sendMessage = displayMessage
+        }
+      } catch (e) {
+        this.sendMessage = 'An error occurred while sending. Try it later or write for help'
+      } finally {
+        this.requestSending = false
+      }
     },
     validateEmail(email) {
       return String(email)
@@ -237,12 +225,4 @@ export default {
 
 <style lang="css">
 @import "./tailwind.min.css";
-
-.loading {
-  width: 20px;
-
-  height: 20px;
-  margin-right: 10px;
-  display: inline-block;
-}
 </style>

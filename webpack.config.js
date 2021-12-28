@@ -16,7 +16,10 @@ if (typeof (WindiCSS) !== 'function') {
 const ExtensionReloader = require('webpack-extension-reloader')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
+const Dotenv = require('dotenv-webpack')
 let { version } = require('./package.json')
+
+console.log('NODE_ENV = ' + process.env.NODE_ENV)
 
 const config = {
   mode: process.env.NODE_ENV,
@@ -133,6 +136,11 @@ const config = {
       __VUE_PROD_DEVTOOLS__: 'false',
     }),
     new VueLoaderPlugin(),
+    new Dotenv({
+      path: process.env.NODE_ENV === 'development'
+        ? '.env.development'
+        : '.env.production',
+    }),
     new CopyWebpackPlugin([
       { from: 'images', to: 'images' },
       { from: 'src_jq', to: 'src_jq' },
