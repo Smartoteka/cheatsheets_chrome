@@ -63,6 +63,8 @@
             :options="options"
             v-model="selected"
             :searchResults="searchResults"
+            v-on:tags-input="tagsLoad"
+            v-on:change="searchTagsChange"
           >
           </select2>
           <img
@@ -78,7 +80,7 @@
             v-if="!newCheatSheet"
           />
         </div>
-        <!-- <div class="selectElementInLine">
+       <div class="selectElementInLine">
           <div
             v-for="v in selectVariants"
             :key="v.title"
@@ -87,7 +89,7 @@
           >
             {{ v.title }}
           </div>
-        </div> -->
+        </div>
         <div style="margin-top: 10px">
           <!-- :showAll="
               (groups.length === 1 || searchResults.length < 4)
@@ -170,29 +172,29 @@ export default {
       ],
       selectVariants: [
         {
-          title: 'All',
+          title: 'All', // TODO: enter в поле поиска
           handler: () => {
-            this.refresh()
+            if (this.options.length === 0) { this.refresh() }
           },
         },
-        {
-          title: 'last created',
-          handler: () => {
-            this.refresh()
-          },
-        },
-        {
-          title: 'last finded',
-          handler: () => {
-            this.refresh()
-          },
-        },
-        {
-          title: 'last edited',
-          handler: () => {
-            this.refresh()
-          },
-        },
+        // {
+        //   title: 'last created',
+        //   handler: () => {
+        //     this.refresh()
+        //   },
+        // },
+        // {
+        //   title: 'last searches', // TODO: вывывести в multilist список
+        //   handler: () => {
+        //     if (this.options.length === 0) { this.refresh() }
+        //   },
+        // },
+        // {
+        //   title: 'last edited',
+        //   handler: () => {
+        //     this.refresh()
+        //   },
+        // },
       ],
     }
   },
@@ -225,8 +227,6 @@ export default {
         vm.addMode = 'Tab'
       }, 10)
     }
-
-    this.refresh()
 
     window.addEventListener(
       'keypress',
@@ -261,6 +261,16 @@ export default {
     )
 
     setTimeout(() => $('search .select2-search__field').focus(), 5)
+
+    window.history.pushState({
+      tags: '',
+    }, null, '?tags=')
+
+    window.onpopstate = function (event) {
+      let tags = event.state.tags.split(',').map(el => ({ id: el, text: el }))
+
+      vm.selected = tags
+    }
   },
   computed: {
     groups() {
@@ -289,7 +299,7 @@ export default {
         () => filterTags,
       )
 
-      return (this.cheatsheets || []).filter(
+      return this.cheatsheets.filter(
         (cheatsheet) => filterTags[cheatsheet.query] || filterByTags(cheatsheet),
       )
     },
@@ -342,6 +352,25 @@ export default {
     },
   },
   methods: {
+    searchTagsChange() {
+      this.refresh()
+
+      let tags = this.selected.map(el => el.text).join(',')
+      if (window.history.state.tags !== tags) { window.history.pushState({ tags: tags }, null, '?tags=' + tags) }
+    },
+    tagsLoad() {
+      if (this.options.length === 0) {
+        this.smartotekaFabric
+          .queriesProvider()
+          .getTags()
+          .then((tags) => {
+            this.options = unique(
+              tags.filter((el) => el),
+              (el) => el.id,
+            )
+          })
+      }
+    },
     startSessionTabDrag(evt, item) {
       // TODO: сделать перетаскивание группами
       // TODO: сделать перемещение и копирование в группы
@@ -444,69 +473,8 @@ export default {
         .queriesProvider()
         .getCheatSheets()
         .then((cheatsheets) => {
-          this.refreshByData(cheatsheets)
-          // cheatsheets.forEach((el) => {
-          //   el.type = 'cheatsheet'
-          // })
-          // this.smartotekaFabric
-          //   .queriesProvider()
-          //   .getSessions()
-          //   .then((sessions) => {
-          //     let data = cheatsheets
-
-          // cheatsheets.forEach((v) => (v.id = v.date))
-          // sessions.map((session) => {
-          //   let i = 0
-          //   let tags = session.tags
-          //   tags.push({ id: session.query, text: session.query })
-
-          //   let cheatsheetsSession = session.tabs.map((tab) => {
-          //     i += 1
-
-          //     let id = parseInt(session.date + '' + i, 10)
-
-          //     return {
-          //       id: id,
-          //       date: session.date,
-          //       type: 'cheatsheet',
-          //       link: tab.url,
-          //       content:
-          //         '![Icon]('
-          //         + tab.favIconUrl
-          //         + ')['
-          //         + tab.title
-          //         + ']('
-          //         + tab.url
-          //         + ')',
-          //       tags: tags,
-          //     }
-          //   })
-
-          //   data = data.concat(cheatsheetsSession)
-
-          //   this.smartotekaFabric.KBManager().saveCheatSheets(data)
-          //   return 0
-          // })
-
-          // this.refreshByData(data)
-          // })
+          this.cheatsheets = cheatsheets
         })
-    },
-    refreshByData(cheatsheets) {
-      this.cheatsheets = cheatsheets
-
-      let allTags = []
-
-      cheatsheets.forEach((el) => {
-        allTags = allTags.concat(el.tags)
-
-        return 0
-      })
-
-      this.options = unique(
-        allTags.filter((el) => el),
-        (el) => el.id,
-      )
     },
     updateCheatSheet(event) {
       this.smartotekaFabric

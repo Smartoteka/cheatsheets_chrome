@@ -29,7 +29,7 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
         (openWindow) => {
           if (openWindow) {
             getActiveTab().then((tab) => {
-              chrome.tabs.update(tab.id, { url: chrome.runtime.getURL(url) + '?cmd=' + (isAddMode ? 'to-add' : 'clear') })
+            //   chrome.tabs.update(tab.id, { url: chrome.runtime.getURL(url) + '?cmd=' + (isAddMode ? 'to-add' : 'clear') })
               chrome.tabs.sendMessage(tab.id, (isAddMode ? 'to-add' : 'clear'), function (response) {
                 console.log(response)
               })

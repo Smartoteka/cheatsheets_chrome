@@ -27,6 +27,7 @@ window.$ = $
 
 export default {
   name: 'select2',
+  emits: ['tags-input', 'change'],
   props: {
     options: Object,
     modelValue: Object,
@@ -48,6 +49,10 @@ export default {
     select2UpdateTags(this.list, vm.$props.modelValue)
 
     this.list.on('change', sendUpdateEvent)
+
+    $('.select2-search__field', this.$el).on('keypress', function (event) {
+      vm.$emit('tags-input', event)
+    })
   },
   watch: {
     modelValue: function (value) {
@@ -55,15 +60,16 @@ export default {
     },
     options: function (options) {
       console.log('options')
-      let modelValue = this.selectList().val()
-      this.selectList().empty()
+      const selectList = this.selectList()
+      let modelValue = selectList.val()
 
-      createMultiselectTags(
-        this.selectList(),
-        options,
-        generateAdditionalTagsFunction(() => this.searchResults),
-      )
-      this.selectList().val(modelValue).trigger('change')
+      selectList.empty()
+
+      options.forEach((val) => {
+        let newOption = new Option(val.text, val.id, false, modelValue.findIndex(mv => mv.id === val.id) >= 0)
+        selectList.append(newOption)
+      })
+      // this.selectList().val(modelValue).trigger('change')
     },
   },
   destroyed: function () {
@@ -95,7 +101,7 @@ export default {
       let strVal = ''
       if (Array.isArray(value)) {
         strVal = JSON.stringify(
-          value.map(el => ({
+          value.map((el) => ({
             id: el.id,
             text: el.text,
             selected: el.selected,
@@ -107,6 +113,7 @@ export default {
 
       if (this.prevValue === strVal) return
       this.prevValue = strVal
+
       console.log('value' + strVal)
 
       if (Array.isArray(value)) {
@@ -115,6 +122,8 @@ export default {
         // update value
         this.selectList().val(value).trigger('change')
       }
+
+      this.$emit('change')
     },
     onContextMenu(e) {
       let vm = this
@@ -130,19 +139,21 @@ export default {
           {
             label: 'Copy',
             onClick: () => {
-              let text = vm.modelValue.map(el => el.text).join(', ')
+              let text = vm.modelValue.map((el) => el.text).join(', ')
               navigator.clipboard.writeText(text)
             },
           },
           {
             label: 'Paste',
             onClick: () => {
-              navigator.clipboard.readText()
-                .then(text => {
-                  let tags = text.split(',').map(el => el.trim()).map(el => ({ id: el, text: el }))
+              navigator.clipboard.readText().then((text) => {
+                let tags = text
+                  .split(',')
+                  .map((el) => el.trim())
+                  .map((el) => ({ id: el, text: el }))
 
-                  vm.setModelValue(vm.modelValue.concat(tags))
-                })
+                vm.setModelValue(vm.modelValue.concat(tags))
+              })
             },
           },
         ],
