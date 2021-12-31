@@ -215,6 +215,10 @@ export default {
           vm.addMode = 'Tab'
         }, 10)
       }
+
+      if (request === 'clear') {
+        setTimeout(() => $('search .select2-search__field').focus(), 5)
+      }
       sendResponse('success!')
     })
     let params = new URLSearchParams(window.location.search)
