@@ -3,13 +3,11 @@
 </template>
 <script>
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer'
-import jQuery from 'jquery'
 import { optionsMixin } from './mixin/option'
-
-let $ = jQuery
 
 export default {
   name: 'ToastuiEditorViewer',
+  emits: ['rendered'],
   mixins: [optionsMixin],
   props: {
     height: {
@@ -18,23 +16,9 @@ export default {
     initialValue: {
       type: String,
     },
-    content: {
-      type: String,
-    },
     options: {
       type: Object,
     },
-  },
-  watch: {
-    //   previewStyle(newValue) {
-    //     this.editor.changePreviewStyle(newValue);
-    //   },
-    //   height(newValue) {
-    //     this.editor.height(newValue);
-    //   },
-    // initialValue(newValue) {
-    //   this.editor.initialValue(newValue);
-    // },
   },
   mounted() {
     const options = {
@@ -43,9 +27,7 @@ export default {
     }
 
     this.editor = new Viewer(options)
-    this.$nextTick(() => {
-      $('a', this.$refs.toastuiEditorViewer).attr('target', '_blank')
-    })
+    this.$emit('rendered', { viewer: this.$refs.toastuiEditorViewer })
   },
   updated() {
     let options = {
@@ -55,9 +37,8 @@ export default {
 
     options.initialValue = this.initialValue
     this.editor = new Viewer(options)
-    this.$nextTick(() => {
-      $('a', this.$refs.toastuiEditorViewer).attr('target', '_blank')
-    })
+
+    this.$emit('rendered', { viewer: this.$refs.toastuiEditorViewer })
   },
   methods: {
     getRootElement() {

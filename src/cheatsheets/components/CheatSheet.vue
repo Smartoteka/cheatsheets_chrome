@@ -32,15 +32,26 @@
           v-if="editMode"
           :initialValue="cheatsheet.content"
         />
-        <Viewer v-if="!editMode" :initialValue="content" :content="content" />
+        <Viewer
+          v-if="!editMode"
+          :initialValue="content"
+          :content="content"
+          v-on:rendered="allAnchorOpenInNewTag($event)"
+        />
       </div>
 
       <div class="edit-buttons" v-if="editMode">
-        <span class="label"
-        :style="'visibility:'+(editMode && !hideContent?'visible':'hidden')"
-        >Link:</span>
+        <span
+          class="label"
+          :style="
+            'visibility:' + (editMode && !hideContent ? 'visible' : 'hidden')
+          "
+          >Link:</span
+        >
         <input
-           :style="'visibility:'+(editMode && !hideContent?'visible':'hidden')"
+          :style="
+            'visibility:' + (editMode && !hideContent ? 'visible' : 'hidden')
+          "
           v-model="cheatsheet.link"
           class="
             w-full
@@ -217,7 +228,7 @@ export default {
       return [{ url: this.cheatsheet.link }]
     },
     clickOutside(event) {
-      if (this.selected) {
+      if (this.cheatsheet.selected) {
         console.log('outside!')
         if (
           !(
@@ -228,7 +239,7 @@ export default {
                 || event.target.parentElement.classList.contains('menu')))
           )
         ) {
-          this.selected = false
+          this.cheatsheet.selected = false
         }
       }
     },
@@ -292,7 +303,11 @@ export default {
       this.editMode = false
       this.mouseFocus = false
 
-      let tagsIsModified = !arraysIsEqual(this.editTags, this.cheatsheet.tags, el => el.text)
+      let tagsIsModified = !arraysIsEqual(
+        this.editTags,
+        this.cheatsheet.tags,
+        (el) => el.text,
+      )
       if (tagsIsModified) {
         this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
       }
@@ -303,11 +318,10 @@ export default {
 
       let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
 
-      this.$emit('update-cheatsheet',
-        {
-          cheatsheet: saveCheatSheet,
-          tagsIsModified,
-        })
+      this.$emit('update-cheatsheet', {
+        cheatsheet: saveCheatSheet,
+        tagsIsModified,
+      })
     },
     cancel() {
       this.editMode = false
@@ -365,6 +379,11 @@ export default {
         x: e.x,
         y: e.y,
         items: items,
+      })
+    },
+    allAnchorOpenInNewTag(event) {
+      this.$nextTick(() => {
+        $('a', event.viewer).attr('target', '_blank')
       })
     },
   },
