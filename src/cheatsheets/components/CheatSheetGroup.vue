@@ -47,6 +47,9 @@
             :cheatsheet="cheatsheet"
             :commonTagsCount="group.commonTagsCount"
             :allTags="allTags"
+            v-on:selected="selectedCheatSheet($event)"
+            v-on:selected-few-elements="selectedFewCheatSheets($event)"
+
             v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
             v-on:remove-cheatsheets="
               $emit('remove-cheatsheets', {
@@ -134,6 +137,7 @@ export default {
   data() {
     return {
       mouseFocus: false,
+      lastSelected: null,
     }
   },
   computed: {
@@ -300,6 +304,24 @@ export default {
         y: e.y,
         items: items,
       })
+    },
+    selectedCheatSheet(event) {
+      let cheatsheet = event
+      this.lastSelected = cheatsheet.selected ? cheatsheet : null
+    },
+    selectedFewCheatSheets(event) {
+      let from = this.group.items.findIndex(el => el === this.lastSelected)
+      if (from < 0) { from = 0 }
+      let to = this.group.items.findIndex(el => el === event.cheatsheet)
+
+      if (!event.event.ctrlKey) {
+        this.group.items.forEach(el => el.selected = false)
+      }
+
+      let max = Math.max(from, to)
+      for (let i = Math.min(from, to); i <= max; i++) {
+        this.group.items[i].selected = true
+      }
     },
   },
 }

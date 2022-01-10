@@ -3,9 +3,9 @@
     :class="
       'cheatsheet ' +
       (cheatsheet.link ? 'link' : 'info') +
-      (selected ? ' selected' : '')
+      (cheatsheet.selected ? ' selected' : '')
     "
-    @click="selected = !selected"
+    @click="selectChange($event)"
     v-click-outside="clickOutside"
     @contextmenu="onContextMenu($event)"
   >
@@ -99,7 +99,13 @@ window.$ = $
 
 export default {
   name: 'CheatSheet',
-  emits: ['move-to-tags', 'cancel-edit', 'remove-cheatsheets'],
+  emits: [
+    'move-to-tags',
+    'cancel-edit',
+    'remove-cheatsheets',
+    'selected-few-elements',
+    'selected',
+  ],
   components: {
     Select2,
     Editor,
@@ -140,7 +146,6 @@ export default {
   },
   data() {
     return {
-      selected: false,
       editTags: [],
       editorOptions: {
         usageStatistics: false,
@@ -218,10 +223,6 @@ export default {
         this.updateEditTags()
       }
     },
-    selected(value) {
-      this.cheatsheet.selected = value
-      return true
-    },
   },
   methods: {
     getTabs() {
@@ -241,6 +242,14 @@ export default {
         ) {
           this.cheatsheet.selected = false
         }
+      }
+    },
+    selectChange(event) {
+      if (event.shiftKey) {
+        this.$emit('selected-few-elements', { event, cheatsheet: this.cheatsheet })
+      } else {
+        this.cheatsheet.selected = !this.cheatsheet.selected
+        this.$emit('selected', this.cheatsheet)
       }
     },
     moveToTags(tagId) {
