@@ -41,6 +41,8 @@
           :readOnly="true"
           draggable="true"
           @dragstart="startSessionTabDrag($event, ch)"
+          v-on:selected="selectedSessionCheatSheet($event)"
+          v-on:selected-few-elements="selectedSessionFewCheatSheets($event)"
         ></CheatSheet>
       </addBlock>
 
@@ -113,6 +115,7 @@
 </template>
 
 <script>
+import { reactive } from 'vue'
 import jQuery from 'jquery'
 import storage from '@/utils/storage'
 import Navbar from '@/common/Navbar'
@@ -281,7 +284,7 @@ export default {
       let cheatsheets = this.searchResults
       let result = cheatsheetsGroupByPreparedGroups(cheatsheets)
 
-      return result
+      return reactive(result)
     },
     searchResults() {
       console.log('searchResults')
@@ -328,7 +331,9 @@ export default {
             let date = new Date()
 
             let sessionTag = 'Session ' + date.toLocaleString().replace(',', '')
-            this.newCheatSheet.tags.push({ id: sessionTag, text: sessionTag })
+            this.newCheatSheet.tags.push(reactive({ id: sessionTag, text: sessionTag }))
+            this.newCheatSheet.content = sessionTag
+            this.newCheatSheet.type = 'group'
 
             let i = 0
             this.sesstionTabs = tabs.map((tab) => {
@@ -368,10 +373,10 @@ export default {
           .queriesProvider()
           .getTags()
           .then((tags) => {
-            this.options = unique(
+            this.options = reactive(unique(
               tags.filter((el) => el),
               (el) => el.id,
-            )
+            ))
           })
       }
     },
@@ -450,6 +455,8 @@ export default {
           if (tabsToSave.length === 0) {
             tabsToSave = this.sesstionTabs.map((ch) => unwrapCheatSheet(ch, cheatsheet.tags))
           }
+
+          tabsToSave.unshift(cheatsheet)
           this.smartotekaFabric
             .KBManager()
             .addCheatSheets(tabsToSave)
@@ -477,7 +484,7 @@ export default {
         .queriesProvider()
         .getCheatSheets()
         .then((cheatsheets) => {
-          this.cheatsheets = cheatsheets
+          this.cheatsheets = reactive(cheatsheets)
         })
     },
     updateCheatSheet(event) {
@@ -498,7 +505,6 @@ export default {
           .then(() => {
             event.cheatsheets.forEach(ch => {
               group.items.splice(group.items.findIndex(item => ch.id === item.id), 1)
-              ch.content = ''
             })
             if (group.items.length === 0) { this.refresh() }
           })
@@ -518,7 +524,7 @@ export default {
           .KBManager()
           .addCheatSheets(cheatsheets)
           .then(() => {
-            cheatsheets.forEach((el) => group.items.push(el))
+            cheatsheets.forEach((el) => group.items.push(reactive(el)))
           })
       }
     },
@@ -540,7 +546,7 @@ export default {
         .then(() => {
           cheatsheets.forEach((el) => {
             el.group = group
-            group.items.push(el)
+            group.items.push(reactive(el))
           })
         })
     },
@@ -553,6 +559,24 @@ export default {
       let tags = this.selected.map((el) => el.text).join(' ')
       let tab = { url: 'https://stackoverflow.com/search?q=' + tags }
       openTabs([tab])
+    },
+    selectedSessionCheatSheet(event) {
+      let cheatsheet = event
+      this.lastSelected = cheatsheet.selected ? cheatsheet : null
+    },
+    selectedSessionFewCheatSheets(event) {
+      let from = this.sesstionTabs.findIndex(el => el === this.lastSelected)
+      if (from < 0) { from = 0 }
+      let to = this.sesstionTabs.findIndex(el => el === event.cheatsheet)
+
+      if (!event.event.ctrlKey) {
+        this.sesstionTabs.forEach(el => el.selected = false)
+      }
+
+      let max = Math.max(from, to)
+      for (let i = Math.min(from, to); i <= max; i++) {
+        this.sesstionTabs[i].selected = true
+      }
     },
   },
 }

@@ -106,7 +106,7 @@ export default {
     'update-cheatsheet',
     'remove-cheatsheets',
     'move-to-tags',
-    'drop-cheatsheet-to-group',
+    'drop-cheat-sheets-to-group',
   ],
   components: {
     CheatSheet,

@@ -27,14 +27,13 @@ window.$ = $
 
 export default {
   name: 'select2',
-  emits: ['tags-input', 'change'],
+  emits: ['tags-input', 'change', 'update:modelValue'],
   props: {
     options: Object,
     modelValue: Object,
     searchResults: Array,
   },
   mounted: function () {
-    console.log('mounted')
     let vm = this
     registerRestrictionMap()
 
@@ -59,7 +58,6 @@ export default {
       this.setModelValue(value)
     },
     options: function (options) {
-      console.log('options')
       const selectList = this.selectList()
       let modelValue = selectList.val()
 
@@ -114,7 +112,7 @@ export default {
       if (this.prevValue === strVal) return
       this.prevValue = strVal
 
-      console.log('value' + strVal)
+      console.log('multiselect set value =' + strVal)
 
       if (Array.isArray(value)) {
         select2UpdateTags(this.selectList(), value)
