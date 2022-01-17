@@ -300,8 +300,8 @@ export default {
 
       // shou our menu
       this.$contextmenu({
-        x: e.x,
-        y: e.y,
+        x: e.pageX,
+        y: e.pageY,
         items: items,
       })
     },

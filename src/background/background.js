@@ -1,5 +1,5 @@
-import storage from '@/utils/storage'
-import { getActiveTab } from '@/src_jq/common/commonFunctions'
+import storage from '../utils/storage'
+import { getActiveTab } from '../src_jq/common/commonFunctions'
 
 let currentPopupId = null
 
