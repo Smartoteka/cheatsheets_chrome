@@ -1,4 +1,4 @@
-import { unique } from '@/src_jq/common/commonFunctions'
+import { unique } from './commonFunctions'
 
 class SmartotekaFabricLocalStorage {
   #save(smartoteka) {

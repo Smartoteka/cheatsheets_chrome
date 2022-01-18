@@ -1,6 +1,6 @@
 import jQuery from 'jquery'
-import { orderByRate, takeByRate } from '@/src_jq/common/rateTags'
-import { unique } from '@/src_jq/common/commonFunctions'
+import { orderByRate, takeByRate } from './rateTags'
+import { unique } from './commonFunctions'
 
 if (!window.$) {
   window.$ = jQuery

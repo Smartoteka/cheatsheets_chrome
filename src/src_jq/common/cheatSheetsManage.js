@@ -1,4 +1,4 @@
-import { comparerFuncDesc, comparerFunc } from '@/src_jq/common/rateTags'
+import { comparerFuncDesc, comparerFunc } from './rateTags'
 
 function clearGroups(groups) {
   for (let i = 0; i < groups.length; i++) {

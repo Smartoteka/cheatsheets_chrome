@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { redirectCurrentTab, openTabs } from '@/src_jq/common/commonFunctions'
+import { redirectCurrentTab, openTabs } from '../src_jq/common/commonFunctions'
 
 export default {
   props: {

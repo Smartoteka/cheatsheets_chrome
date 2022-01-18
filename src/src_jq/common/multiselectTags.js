@@ -1,4 +1,4 @@
-import Fuse from '@/src_jq/libraries/fuse'
+import Fuse from '../libraries/fuse'
 
 export default function createMultiselectTags(selector, tags, helpTags) {
   tags = tags.filter(el => el.id)

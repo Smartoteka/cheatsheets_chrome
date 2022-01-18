@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import storage from '@/utils/storage'
-import axios from '@/services/axios'
+import storage from '../../utils/storage'
+import axios from '../../services/axios'
 
 export default {
   components: {},

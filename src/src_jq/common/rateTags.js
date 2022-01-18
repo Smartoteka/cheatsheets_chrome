@@ -1,4 +1,4 @@
-import Fuse from '@/src_jq/libraries/fuse'
+import Fuse from '../libraries/fuse'
 
 export function comparer(a, b) {
   return a < b

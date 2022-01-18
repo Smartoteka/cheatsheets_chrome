@@ -1,4 +1,4 @@
-import SmartotekaFabricLocalStorage from '@/src_jq/common/SmartotekaFabricLocalStorage'
+import SmartotekaFabricLocalStorage from './SmartotekaFabricLocalStorage'
 
 export function throttle(func, ms) {
   let savedArgs

@@ -2,7 +2,7 @@ import {
   throttle, openTabsInNewWindow,
   openTabs, closeTabsByUrlIfOpen,
   secondRunImmediately,
-} from '@/src_jq/common/commonFunctions'
+} from '../src_jq/common/commonFunctions'
 
 export function getActions() {
   if (!window.actions) {

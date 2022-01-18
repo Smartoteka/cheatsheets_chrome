@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import ClickOutsideEvent from '@/common/directives/ClickOutside'
+import ClickOutsideEvent from '../../common/directives/ClickOutside'
 
 export default {
   name: 'CheatSheet',

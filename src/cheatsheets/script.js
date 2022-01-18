@@ -8,7 +8,7 @@ import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import VueFeather from 'vue-feather'
 
-import ContextMenu from '@/common/vue3-context-menu/vue3-context-menu.umd.min'
+import ContextMenu from '../common/vue3-context-menu/vue3-context-menu.umd.min'
 import App from './cheatscheets'
 import storage from '../utils/storage'
 import { redirectCurrentTab } from '../src_jq/common/commonFunctions'

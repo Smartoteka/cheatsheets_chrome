@@ -117,12 +117,12 @@
 <script>
 import { reactive } from 'vue'
 import jQuery from 'jquery'
-import storage from '@/utils/storage'
-import Navbar from '@/common/Navbar'
+import storage from '../utils/storage'
+import Navbar from '../common/Navbar'
 
 import CheatSheet from './components/CheatSheet'
 import CheatSheetGroup from './components/CheatSheetGroup'
-import Select2 from '@/common/Select2'
+import Select2 from '../common/Select2'
 import StatusBar from './components/StatusBar'
 
 import {
@@ -133,9 +133,9 @@ import {
   unwrapCheatSheet,
   getGroupTags,
   openTabs,
-} from '@/src_jq/common/commonFunctions'
-import { cheatsheetsGroupByPreparedGroups } from '@/src_jq/common/cheatSheetsManage'
-import { getFilterByFilterTags } from '@/src_jq/common/mulitselectTagsHandlers'
+} from '../src_jq/common/commonFunctions'
+import { cheatsheetsGroupByPreparedGroups } from '../src_jq/common/cheatSheetsManage'
+import { getFilterByFilterTags } from '../src_jq/common/mulitselectTagsHandlers'
 
 window.$ = jQuery
 let $ = jQuery

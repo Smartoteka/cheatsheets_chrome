@@ -11,17 +11,17 @@
 
 <script>
 import $ from 'jquery'
-import { unique, throttle } from '@/src_jq/common/commonFunctions'
+import { unique, throttle } from '../src_jq/common/commonFunctions'
 import {
   select2UpdateTags,
   generateAdditionalTagsFunction,
-} from '@/src_jq/common/mulitselectTagsHandlers'
+} from '../src_jq/common/mulitselectTagsHandlers'
 
-import registerRestrictionMap from '@/src_jq/common/restrictionMap'
+import registerRestrictionMap from '../src_jq/common/restrictionMap'
 
-import '@/src_jq/libraries/select2'
+import '../src_jq/libraries/select2'
 
-import createMultiselectTags from '@/src_jq/common/multiselectTags'
+import createMultiselectTags from '../src_jq/common/multiselectTags'
 
 window.$ = $
 

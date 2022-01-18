@@ -114,9 +114,9 @@
 </template>
 
 <script>
-import storage from '@/utils/storage'
-import { redirectCurrentTab } from '@/src_jq/common/commonFunctions'
-import api from '@/services/api'
+import storage from '../utils/storage'
+import { redirectCurrentTab } from '../src_jq/common/commonFunctions'
+import api from '../services/api'
 
 export default {
   name: 'Login',

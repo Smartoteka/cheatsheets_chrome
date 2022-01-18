@@ -98,7 +98,7 @@ import {
   getAllTabs,
   closeTabs,
   unwrapCheatSheet,
-} from '@/src_jq/common/commonFunctions'
+} from '../../src_jq/common/commonFunctions'
 
 export default {
   name: 'CheatSheetGroup',

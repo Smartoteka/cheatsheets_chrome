@@ -83,8 +83,8 @@ import $ from 'jquery'
 import { takeWhile } from 'lodash'
 import Viewer from './Viewer'
 import Editor from './Editor'
-import Select2 from '@/common/Select2'
-import ClickOutsideEvent from '@/common/directives/ClickOutside'
+import Select2 from '../../common/Select2'
+import ClickOutsideEvent from '../../common/directives/ClickOutside'
 import {
   unwrapCheatSheet,
   closeTabsByUrlIfOpen,
@@ -92,7 +92,7 @@ import {
   openTabs,
   unique,
   arraysIsEqual,
-} from '@/src_jq/common/commonFunctions'
+} from '../../src_jq/common/commonFunctions'
 import Menu from './menu'
 
 window.$ = $

@@ -1,4 +1,4 @@
-import { getSmartotekaFabric } from '@/src_jq/common/commonFunctions'
+import { getSmartotekaFabric } from '../common/commonFunctions'
 
 let smartotekaFabric = getSmartotekaFabric()
 
