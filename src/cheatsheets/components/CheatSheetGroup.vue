@@ -5,13 +5,14 @@
       @drop="onDrop($event)"
       @dragleave="dragLeave($event)"
       @dragover="dragOver($event)"
+      @contextmenu="onHeaderContextMenu($event)"
     >
       <div
         class="header"
         @mouseenter="mouseFocus = true"
         @mouseleave="mouseFocus = false"
         @click.self="showChildren = !showChildren"
-        @contextmenu="onHeaderContextMenu($event)"
+
       >
         <div class="title">
           <span

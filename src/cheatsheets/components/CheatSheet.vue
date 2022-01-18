@@ -356,28 +356,50 @@ export default {
       // prevent the browser's default menu
       e.preventDefault()
 
-      let items = [
-        {
-          label: 'Copy',
-          onClick: () => {
-            let text = JSON.stringify(
-              unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags),
-            )
-            navigator.clipboard.writeText(text)
+      let items = []
+
+      if (this.cheatsheet.content) {
+        items.push(
+          {
+            label: 'Copy content',
+            onClick: () => {
+              let text = this.cheatsheet.content
+              navigator.clipboard.writeText(text)
+            },
           },
-        },
-      ]
+        )
+      }
+
+      if (this.cheatsheet.tags.length > 0) {
+        items.push(
+          {
+            label: 'Copy json',
+            onClick: () => {
+              let text = JSON.stringify(
+                unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags),
+              )
+              navigator.clipboard.writeText(text)
+            },
+          },
+        )
+      }
 
       if (this.edit) {
         items.push({
           label: 'Paste',
           onClick: () => {
             navigator.clipboard.readText().then((text) => {
-              let cheatSheet = JSON.parse(text)
+              try {
+                let cheatSheet = JSON.parse(text)
 
-              this.cheatsheet.tags = cheatSheet.tags
-              this.cheatsheet.link = cheatSheet.link
-              this.cheatsheet.content = cheatSheet.content
+                this.cheatsheet.tags = cheatSheet.tags
+                this.cheatsheet.link = cheatSheet.link
+                this.cheatsheet.content = cheatSheet.content
+              } catch (exception) {
+                console.error(exception)
+
+                this.cheatsheet.content = text
+              }
             })
           },
         })
@@ -388,6 +410,9 @@ export default {
         y: e.pageY,
         items: items,
       })
+
+      e.stopPropagation()
+      return false
     },
     allAnchorOpenInNewTag(event) {
       this.$nextTick(() => {
