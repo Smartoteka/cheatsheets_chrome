@@ -177,7 +177,10 @@ export default {
         {
           title: 'All', // TODO: enter в поле поиска
           handler: () => {
-            if (this.options.length === 0) { this.refresh() }
+            if (this.options.length === 0) {
+              this.refresh()
+              this.selectVariants.pop()
+            }
           },
         },
         // {

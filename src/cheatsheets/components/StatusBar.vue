@@ -43,6 +43,11 @@ export default {
           }
           if (data.displayMessage) {
             this.message = data.displayMessage
+
+            if (data.displayMessage === 'User not found') {
+              storage.remove('app-uuid')
+                .then(() => { window.location.reload() })
+            }
           }
         })
         .catch((e) => {
