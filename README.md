@@ -1,7 +1,20 @@
 # Getting started
+# Install
 - download last [release](https://github.com/Smartoteka/cheatsheets_chrome/releases)
+
+![release_page](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/release_page.png)
+
+![download](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/download.png)
+
 - unzip release in folder
+after unzip folder contains:
+
+![afterUnpack](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/afterUnpack.png)
+
 - open chrome extensions page
+
+
+
 - enable developer mode (switch in the top right corner)
 - click 'Load unpacked' from the bar
 - and select your unzip folder
