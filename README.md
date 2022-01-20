@@ -4,12 +4,12 @@
 
 ![release_page](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/release_page.png)
 
-![download](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/download.png)
+![download](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/Download.png)
 
 - unzip release in folder
 after unzip folder contains:
 
-![afterUnpack](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/afterUnpack.png)
+![afterUnpack](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/install/afterUnpack.jpeg)
 
 - open chrome extensions page
 
