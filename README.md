@@ -47,11 +47,11 @@ After search you will see cheatsheets by you tags
 
 ![after search](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/after search.png)
 
-Attension! I recomend export your smartoteka and store reserv copy from settings page minimum one a week or when you add some important information.
+Attension! I recomend export your smartoteka and store reserve copy from settings page at least once a week or when you add some important information.
 
 ![settings](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/settings.png)
 
-When you push add button then you can add cheatsheet (markdown + tags), tabs (link+markdown+tags), session (many tabs with similar tags)
+When you press add button then you can add cheatsheet (markdown + tags), tabs (link+markdown+tags), session (few tabs with similar tags)
 
 ![save_tab](https://raw.githubusercontent.com/Smartoteka/cheatsheets_chrome/master/docs/images/save_tab.png)
 
