@@ -9,48 +9,64 @@
     v-click-outside="clickOutside"
     @contextmenu="onContextMenu($event)"
   >
+    <div class="selectElementInLine" v-if="currentMode === 'edit'">
+      <div
+        v-for="(name, key) in types"
+        :key="key"
+        @click="editType = key"
+        :class="'pointer ' + (key === editType ? 'selected' : 'unselected')"
+      >
+        {{ name }}
+      </div>
+    </div>
     <div
       class="content"
       @mouseenter="mouseFocus = true"
       @mouseleave="mouseFocus = false"
     >
-      <div :class="'tags ' + (editMode ? 'hide' : '')">
+      <div :class="'tags ' + (isNotRead ? 'hide' : '')">
+        <span v-if="cheatsheet.type === 'group'&&tags.length>0"><img
+        class="add ctrl-img"
+        style="width:15px; height:15px; margin-right:5px;"
+        src="/images/arrow-down.svg"
+        @click="moveToTags(tags.length>0?tags[tags.length-1].text:'')"
+      /></span>
         <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
           >{{ tag.text }}&nbsp;</span
         >
       </div>
-      <div v-if="editMode">
+      <div v-if="isNotRead">
         <select2 :options="allTags" v-model="editTags"> </select2>
       </div>
       <div
         class="code"
         v-if="!hideContent"
-        :style="editMode ? 'width:100%' : ''"
+        :style="isNotRead ? 'width:100%' : ''"
       >
         <Editor
           ref="editor"
-          v-if="editMode"
+          v-if="isNotRead"
           :initialValue="cheatsheet.content"
         />
         <Viewer
-          v-if="!editMode"
+          v-if="!isNotRead"
           :initialValue="content"
           :content="content"
           v-on:rendered="allAnchorOpenInNewTag($event)"
         />
       </div>
 
-      <div class="edit-buttons" v-if="editMode">
+      <div class="edit-buttons" v-if="isNotRead">
         <span
           class="label"
           :style="
-            'visibility:' + (editMode && !hideContent ? 'visible' : 'hidden')
+            'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
           "
           >Link:</span
         >
         <input
           :style="
-            'visibility:' + (editMode && !hideContent ? 'visible' : 'hidden')
+            'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
           "
           v-model="cheatsheet.link"
           class="
@@ -67,7 +83,7 @@
         <img src="/images/x.svg" class="close" @click="cancel" />
       </div>
       <Menu
-        v-if="mouseFocus && !editMode && !readOnly"
+        v-if="mouseFocus && !isNotRead && !readOnly"
         :elements="menuElements"
         :textElements="textMenuElements"
       >
@@ -128,9 +144,9 @@ export default {
       type: Array,
       default: () => [],
     },
-    edit: {
-      type: Boolean,
-      defautl: () => false,
+    mode: {
+      type: String,
+      defautl: () => 'read',
       writable: true,
     },
     readOnly: {
@@ -143,15 +159,26 @@ export default {
       defautl: () => false,
       writable: true,
     },
+    popup: {
+      type: Boolean,
+      defautl: () => false,
+      writable: true,
+    },
+    type: {
+      type: String,
+      defautl: () => null,
+      writable: true,
+    },
   },
   data() {
     return {
       editTags: [],
+      editType: 'cheatsheet',
       editorOptions: {
         usageStatistics: false,
       },
       mouseFocus: false,
-      editMode: false,
+      currentMode: 'read',
       menuElements: [
         {
           image: '/images/edit.svg',
@@ -162,20 +189,25 @@ export default {
           handler: () => this.removeCheatSheet(),
         },
       ],
+      types: { cheatsheet: 'Cheat Sheet', group: 'Group' },
     }
   },
   beforeMount: function () {
-    this.editMode = this.edit
+    this.currentMode = this.mode
+    this.editType = this.cheatsheet.type
   },
   mounted: function () {
     this.addButtonsToCodeBlocks()
   },
   updated: function () {
-    if (!this.editMode) {
+    if (!this.isNotRead) {
       this.addButtonsToCodeBlocks()
     }
   },
   computed: {
+    isNotRead() {
+      return this.currentMode === 'add' || this.currentMode === 'edit'
+    },
     textMenuElements() {
       let menuItems = []
 
@@ -218,10 +250,13 @@ export default {
     },
   },
   watch: {
-    editMode(value) {
+    currentMode(value) {
       if (value) {
         this.updateEditTags()
       }
+    },
+    type(value) {
+      this.editType = value
     },
   },
   methods: {
@@ -245,8 +280,15 @@ export default {
       }
     },
     selectChange(event) {
+      if (this.isNotRead) {
+        return
+      }
+
       if (event.shiftKey) {
-        this.$emit('selected-few-elements', { event, cheatsheet: this.cheatsheet })
+        this.$emit('selected-few-elements', {
+          event,
+          cheatsheet: this.cheatsheet,
+        })
       } else {
         this.cheatsheet.selected = !this.cheatsheet.selected
         this.$emit('selected', this.cheatsheet)
@@ -303,13 +345,13 @@ export default {
       this.editTags = this.cheatsheet.tags.slice(0)
     },
     toEditMode() {
-      this.editMode = true
+      this.currentMode = 'edit'
     },
     removeCheatSheet() {
       this.$emit('remove-cheatsheets', [this.cheatsheet])
     },
     save() {
-      this.editMode = false
+      this.currentMode = 'read'
       this.mouseFocus = false
 
       let tagsIsModified = !arraysIsEqual(
@@ -325,6 +367,7 @@ export default {
         this.cheatsheet.content = this.$refs.editor.editor.getMarkdown()
       }
 
+      this.cheatsheet.type = this.editType
       let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
 
       this.$emit('update-cheatsheet', {
@@ -333,7 +376,7 @@ export default {
       })
     },
     cancel() {
-      this.editMode = false
+      this.currentMode = 'read'
       this.mouseFocus = false
       this.updateEditTags()
       this.$emit('cancel-edit')
@@ -359,32 +402,28 @@ export default {
       let items = []
 
       if (this.cheatsheet.content) {
-        items.push(
-          {
-            label: 'Copy content',
-            onClick: () => {
-              let text = this.cheatsheet.content
-              navigator.clipboard.writeText(text)
-            },
+        items.push({
+          label: 'Copy content',
+          onClick: () => {
+            let text = this.cheatsheet.content
+            navigator.clipboard.writeText(text)
           },
-        )
+        })
       }
 
       if (this.cheatsheet.tags.length > 0) {
-        items.push(
-          {
-            label: 'Copy json',
-            onClick: () => {
-              let text = JSON.stringify(
-                unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags),
-              )
-              navigator.clipboard.writeText(text)
-            },
+        items.push({
+          label: 'Copy json',
+          onClick: () => {
+            let text = JSON.stringify(
+              unwrapCheatSheet(this.cheatsheet, this.cheatsheet.tags),
+            )
+            navigator.clipboard.writeText(text)
           },
-        )
+        })
       }
 
-      if (this.edit) {
+      if (this.isNotRead) {
         items.push({
           label: 'Paste',
           onClick: () => {
@@ -427,6 +466,22 @@ export default {
 @import "../../styles/variables";
 
 $sky: #e6f6fe;
+
+.selectElementInLine {
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+
+  div {
+    line-height: 2em;
+    padding: 5px 5px;
+  }
+  div.selected {
+    border: 1px solid #bbfdc6;
+    border-radius: 5px;
+    color: green;
+  }
+}
 
 .info {
   border: 2px solid #bbfdc6;

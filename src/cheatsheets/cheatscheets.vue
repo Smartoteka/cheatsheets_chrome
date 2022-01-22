@@ -27,12 +27,12 @@
         </addModes>
         <CheatSheet
           style="min-width: 350px; width: 100%"
+          :type="newCheatSheet.type"
           :cheatsheet="newCheatSheet"
           :allTags="options"
           v-on:update-cheatsheet="saveNewCheatSheet"
           v-on:cancel-edit="cancelNewCheatSheet"
-          :edit="true"
-          :hideContent="addMode === 'Session'"
+          :mode="'add'"
         ></CheatSheet>
         <CheatSheet
           v-for="ch in sesstionTabs"
@@ -82,7 +82,7 @@
             v-if="!newCheatSheet"
           />
         </div>
-       <div class="selectElementInLine">
+        <div class="selectElementInLine">
           <div
             v-for="v in selectVariants"
             :key="v.title"
@@ -96,6 +96,14 @@
           <!-- :showAll="
               (groups.length === 1 || searchResults.length < 4)
             " -->
+          <div
+            v-if="
+              selectVariants.findIndex((el) => el.title === 'All') < 0 &&
+              groups.length === 0
+            "
+          >
+            No results found
+          </div>
           <CheatSheetGroup
             v-for="group in groups"
             :key="group.id"
@@ -272,12 +280,18 @@ export default {
 
     setTimeout(() => $('search .select2-search__field').focus(), 5)
 
-    window.history.pushState({
-      tags: '',
-    }, null, '?tags=')
+    window.history.pushState(
+      {
+        tags: '',
+      },
+      null,
+      '?tags=',
+    )
 
     window.onpopstate = function (event) {
-      let tags = event.state.tags.split(',').map(el => ({ id: el, text: el }))
+      let tags = event.state.tags
+        .split(',')
+        .map((el) => ({ id: el, text: el }))
 
       vm.selected = tags
     }
@@ -323,9 +337,13 @@ export default {
 
       switch (value) {
         case 'Cheat Sheet':
-          if (this.newCheatSheet) { this.newCheatSheet.link = '' }
+          if (this.newCheatSheet) {
+            this.newCheatSheet.link = ''
+            this.newCheatSheet.type = 'cheatsheet'
+          }
           break
         case 'Group':
+          this.newCheatSheet.type = 'group'
           break
 
         case 'Session':
@@ -334,7 +352,9 @@ export default {
             let date = new Date()
 
             let sessionTag = 'Session ' + date.toLocaleString().replace(',', '')
-            this.newCheatSheet.tags.push(reactive({ id: sessionTag, text: sessionTag }))
+            this.newCheatSheet.tags.push(
+              reactive({ id: sessionTag, text: sessionTag }),
+            )
             this.newCheatSheet.content = sessionTag
             this.newCheatSheet.type = 'group'
 
@@ -344,6 +364,7 @@ export default {
               return {
                 id: parseInt(date.getTime() + '' + i, 10),
                 date: date,
+                type: 'cheatsheet',
                 content: this.tabLinkMarkdown(tab),
                 tags: [],
                 link: tab.url,
@@ -352,6 +373,7 @@ export default {
           })
           break
         case 'Tab':
+          this.newCheatSheet.type = 'cheatsheet'
           windowId = await storage.get('windowId')
           getActiveTab(windowId).then((tab) => {
             this.newCheatSheet.content = this.tabLinkMarkdown(tab)
@@ -367,8 +389,10 @@ export default {
     searchTagsChange() {
       this.refresh()
 
-      let tags = this.selected.map(el => el.text).join(',')
-      if (window.history.state.tags !== tags) { window.history.pushState({ tags: tags }, null, '?tags=' + tags) }
+      let tags = this.selected.map((el) => el.text).join(',')
+      if (window.history.state.tags !== tags) {
+        window.history.pushState({ tags: tags }, null, '?tags=' + tags)
+      }
     },
     tagsLoad() {
       if (this.options.length === 0) {
@@ -376,10 +400,12 @@ export default {
           .queriesProvider()
           .getTags()
           .then((tags) => {
-            this.options = reactive(unique(
-              tags.filter((el) => el),
-              (el) => el.id,
-            ))
+            this.options = reactive(
+              unique(
+                tags.filter((el) => el),
+                (el) => el.id,
+              ),
+            )
           })
       }
     },
@@ -414,6 +440,7 @@ export default {
       let date = new Date().valueOf()
       this.newCheatSheet = {
         id: date,
+        type: 'cheatsheet',
         date: date,
         content: '',
         tags: this.selected.slice(0),
@@ -495,7 +522,9 @@ export default {
         .KBManager()
         .updateCheatSheets([event.cheatsheet])
         .then(() => {
-          if (event.tagsIsModified) { this.refresh() }
+          if (event.tagsIsModified) {
+            this.refresh()
+          }
         })
     },
     removeCheatSheets(event) {
@@ -506,10 +535,15 @@ export default {
           .KBManager()
           .deleteCheatSheets(event.cheatsheets)
           .then(() => {
-            event.cheatsheets.forEach(ch => {
-              group.items.splice(group.items.findIndex(item => ch.id === item.id), 1)
+            event.cheatsheets.forEach((ch) => {
+              group.items.splice(
+                group.items.findIndex((item) => ch.id === item.id),
+                1,
+              )
             })
-            if (group.items.length === 0) { this.refresh() }
+            if (group.items.length === 0) {
+              this.refresh()
+            }
           })
       }
     },
@@ -532,16 +566,19 @@ export default {
       }
     },
     dropCheatSheetsToGroup(event) {
-      if (event.cheatsheets.length === 0) { return }
+      if (event.cheatsheets.length === 0) {
+        return
+      }
 
       let group = event.group
       let tags = getGroupTags(group)
 
       let isMove = event.event.dataTransfer.effectAllowed === 'move'
 
-      let cheatsheets = event.cheatsheets
-        .map((el) => unwrapCheatSheet(el,
-          unique(isMove ? tags : tags.concat(el.tags), ch => ch.id)))
+      let cheatsheets = event.cheatsheets.map((el) => unwrapCheatSheet(
+        el,
+        unique(isMove ? tags : tags.concat(el.tags), (ch) => ch.id),
+      ))
 
       this.smartotekaFabric
         .KBManager()
@@ -568,12 +605,14 @@ export default {
       this.lastSelected = cheatsheet.selected ? cheatsheet : null
     },
     selectedSessionFewCheatSheets(event) {
-      let from = this.sesstionTabs.findIndex(el => el === this.lastSelected)
-      if (from < 0) { from = 0 }
-      let to = this.sesstionTabs.findIndex(el => el === event.cheatsheet)
+      let from = this.sesstionTabs.findIndex((el) => el === this.lastSelected)
+      if (from < 0) {
+        from = 0
+      }
+      let to = this.sesstionTabs.findIndex((el) => el === event.cheatsheet)
 
       if (!event.event.ctrlKey) {
-        this.sesstionTabs.forEach(el => el.selected = false)
+        this.sesstionTabs.forEach((el) => (el.selected = false))
       }
 
       let max = Math.max(from, to)
@@ -586,6 +625,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.selectElementInLine {
+  div{
+    line-height: 2em;
+    padding: 5px 5px;
+  }
+  div.selected {
+    border: 2px solid #bbfdc6;
+    border-radius: 5px;
+  }
+}
 .statusbar {
   position: absolute;
   right: 0px;
