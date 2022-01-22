@@ -25,18 +25,23 @@
       @mouseleave="mouseFocus = false"
     >
       <div :class="'tags ' + (isNotRead ? 'hide' : '')">
-        <span v-if="cheatsheet.type === 'group'&&tags.length>0"><img
-        class="add ctrl-img"
-        style="width:15px; height:15px; margin-right:5px;"
-        src="/images/arrow-down.svg"
-        @click="moveToTags(tags.length>0?tags[tags.length-1].text:'')"
-      /></span>
+        <span v-if="cheatsheet.type === 'group' && tags.length > 0"
+          ><img
+            class="add ctrl-img"
+            style="width: 15px; height: 15px; margin-right: 5px"
+            src="/images/arrow-down.svg"
+            @click="
+              moveToTags(tags.length > 0 ? tags[tags.length - 1].text : '')
+            "
+        /></span>
         <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
           >{{ tag.text }}&nbsp;</span
         >
       </div>
       <div v-if="isNotRead">
-        <select2 :options="allTags" v-model="editTags"> </select2>
+        <select2 :options="allTags" v-model="editTags"
+        :placeholder="'Enumerate the tags to search for this element'"
+        > </select2>
       </div>
       <div
         class="code"

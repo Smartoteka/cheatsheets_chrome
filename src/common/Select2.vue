@@ -32,6 +32,7 @@ export default {
     options: Object,
     modelValue: Object,
     searchResults: Array,
+    placeholder: String,
   },
   mounted: function () {
     let vm = this
@@ -43,6 +44,7 @@ export default {
       this.selectList(),
       vm.$props.options,
       generateAdditionalTagsFunction(() => this.searchResults || []),
+      this.placeholder,
     )
 
     select2UpdateTags(this.list, vm.$props.modelValue)
@@ -64,7 +66,12 @@ export default {
       selectList.empty()
 
       options.forEach((val) => {
-        let newOption = new Option(val.text, val.id, false, modelValue.findIndex(mv => mv.id === val.id) >= 0)
+        let newOption = new Option(
+          val.text,
+          val.id,
+          false,
+          modelValue.findIndex((mv) => mv.id === val.id) >= 0,
+        )
         selectList.append(newOption)
       })
       // this.selectList().val(modelValue).trigger('change')

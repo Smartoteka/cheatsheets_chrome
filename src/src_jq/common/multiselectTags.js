@@ -1,6 +1,6 @@
 import Fuse from '../libraries/fuse'
 
-export default function createMultiselectTags(selector, tags, helpTags) {
+export default function createMultiselectTags(selector, tags, helpTags, placeholder) {
   tags = tags.filter(el => el.id)
   let multilist = $(selector)
 
@@ -10,7 +10,7 @@ export default function createMultiselectTags(selector, tags, helpTags) {
     tags: true,
     dragAndDropTags: true,
     tokenSeparators: [','],
-    placeholder: 'Click here and start typing to search.',
+    placeholder: placeholder,
     data: tags,
     templateResult: (element) => {
       if (element.unionTag) {

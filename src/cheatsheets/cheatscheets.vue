@@ -67,6 +67,7 @@
             :searchResults="searchResults"
             v-on:tags-input="tagsLoad"
             v-on:change="searchTagsChange"
+            :placeholder="'Click here and start typing to search'"
           >
           </select2>
           <img
