@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      :class="'card ' + (isContainsLink ? 'link' : 'info')"
+      :class="'group ' + (isContainsLink ? 'link' : 'info')"
       @drop="onDrop($event)"
       @dragleave="dragLeave($event)"
       @dragover="dragOver($event)"
@@ -46,7 +46,7 @@
             v-for="cheatsheet in showChildren ? group.items : []"
             :key="cheatsheet.id"
             :cheatsheet="cheatsheet"
-            :commonTagsCount="group.commonTagsCount"
+            :commonTags="searchTags"
             :allTags="allTags"
             v-on:selected="selectedCheatSheet($event)"
             v-on:selected-few-elements="selectedFewCheatSheets($event)"
@@ -117,6 +117,10 @@ export default {
     group: {
       type: Object,
       default: () => {},
+    },
+    searchTags: {
+      type: Array,
+      default: () => [],
     },
     showChildren: {
       type: Boolean,
@@ -295,6 +299,7 @@ export default {
       }
     },
     onHeaderContextMenu(e) {
+      if (e.handle) { return }
       e.preventDefault()
 
       let items = this.menuElements.map(el => ({ label: el.text, onClick: el.handler }))
@@ -336,60 +341,60 @@ $sky: #8ef7a0;
 .content {
   margin-left: 15px;
 
-  .column {
-    float: left;
-    display: inline;
-  }
-  .column2 {
-    display: inline;
-    float: left;
-    width: 100%;
-  }
+  // .column {
+  //   float: left;
+  //   display: inline;
+  // }
+  // .column2 {
+  //   display: inline;
+  //   float: left;
+  //   width: 100%;
+  // }
 }
 
 .ctrl-img {
   width: 16px;
 }
 
-.info {
+.group.info {
   border: 2px solid #bbfdc6;
 }
 
-.link {
+.group.link {
   border: 2px solid #e6f6fe;
 }
 
-.card {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  clear: both;
+// .group {
+//   padding-top: 10px;
+//   padding-bottom: 10px;
+//   clear: both;
 
-  .header {
-    position: relative;
-    font-size: 1.125rem;
-    padding: 0 1rem;
-    line-height: 1.125rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+//   .header {
+//     position: relative;
+//     font-size: 1.125rem;
+//     padding: 0 1rem;
+//     line-height: 1.125rem;
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
 
-    .title {
-      min-height: 1.5rem;
-      line-height: 1.5rem;
-      vertical-align: middle;
-      font-weight: 500;
-      color: #194c66;
+//     .title {
+//       min-height: 1.5rem;
+//       line-height: 1.5rem;
+//       vertical-align: middle;
+//       font-weight: 500;
+//       color: #194c66;
 
-      .expand {
-        display: inline-block;
-        cursor: pointer;
-        margin-right: 20px;
-      }
+//       .expand {
+//         display: inline-block;
+//         cursor: pointer;
+//         margin-right: 20px;
+//       }
 
-      .tag {
-        cursor: pointer;
-      }
-    }
-  }
-}
+//       .tag {
+//         cursor: pointer;
+//       }
+//     }
+//   }
+// }
 </style>

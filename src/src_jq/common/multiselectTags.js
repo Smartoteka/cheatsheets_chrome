@@ -4,6 +4,21 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
   tags = tags.filter(el => el.id)
   let multilist = $(selector)
 
+  let elementRender = (element) => {
+    if (element.unionTag) {
+      let html = $('<span style="color:blue">' + element.text + '</span>')
+
+      return html
+    }
+
+    if (element.newTag) {
+      let html = $('<span style="color:green">' + element.text + '</span>')
+
+      return html
+    }
+
+    return element.text
+  }
   let select2List = multilist.select2({
     width: '100%',
     multiple: true,
@@ -12,21 +27,8 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
     tokenSeparators: [','],
     placeholder: placeholder,
     data: tags,
-    templateResult: (element) => {
-      if (element.unionTag) {
-        let html = $('<span style="color:green">' + element.text + '</span>')
-
-        return html
-      }
-
-      if (element.newTag) {
-        let html = $('<span style="color:#1a0dab">' + element.text + '</span>')
-
-        return html
-      }
-
-      return element.text
-    },
+    templateSelection: elementRender,
+    templateResult: elementRender,
     createTag: function (params) {
       let term = $.trim(params.term)
 
@@ -62,10 +64,10 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
 
       return null
     },
-    insertTag: function (data, tag) {
-      // Insert the tag at the end of the results
-      data.push(tag)
-    },
+    // insertTag: function (data, tag) {
+    //   // Insert the tag at the end of the results
+    //   data.push(tag)
+    // },
     matcher: (term, text) => {
       if (!term.term) {
         let tags = $(selector).select2('data').map(el => el.text)

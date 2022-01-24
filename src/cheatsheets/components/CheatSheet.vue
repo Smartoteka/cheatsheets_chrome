@@ -3,11 +3,13 @@
     :class="
       'cheatsheet ' +
       (cheatsheet.link ? 'link' : 'info') +
-      (cheatsheet.selected ? ' selected' : '')
+      (cheatsheet.selected || mouseFocus || isNotRead ? ' selected' : '')
     "
     @click="selectChange($event)"
     v-click-outside="clickOutside"
     @contextmenu="onContextMenu($event)"
+    @mouseenter="mouseFocus = true"
+    @mouseleave="mouseFocus = false"
   >
     <div class="selectElementInLine" v-if="currentMode === 'edit'">
       <div
@@ -19,81 +21,64 @@
         {{ name }}
       </div>
     </div>
-    <div
-      class="content"
-      @mouseenter="mouseFocus = true"
-      @mouseleave="mouseFocus = false"
-    >
-      <div :class="'tags ' + (isNotRead ? 'hide' : '')">
-        <span v-if="cheatsheet.type === 'group' && tags.length > 0"
-          ><img
-            class="add ctrl-img"
-            style="width: 15px; height: 15px; margin-right: 5px"
-            src="/images/arrow-down.svg"
-            @click="
-              moveToTags(tags.length > 0 ? tags[tags.length - 1].text : '')
-            "
-        /></span>
-        <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
-          >{{ tag.text }}&nbsp;</span
-        >
-      </div>
-      <div v-if="isNotRead">
-        <select2 :options="allTags" v-model="editTags"
+    <p :class="'tags ' + (isNotRead ? 'hide' : '')">
+      <span v-if="cheatsheet.type === 'group' && tags.length > 0"
+        ><img
+          class="add ctrl-img"
+          style="width: 15px; height: 15px; margin-right: 5px"
+          src="/images/arrow-down.svg"
+          @click="
+            moveToTags(tags.length > 0 ? tags[tags.length - 1].text : '')
+          "
+      /></span>
+      <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
+        >{{ tag.text }}&nbsp;&nbsp;</span
+      >
+    </p>
+    <p v-if="isNotRead">
+      <select2
+        v-on:tags-input="tagsLoad"
+        :options="options"
+        v-model="editTags"
         :placeholder="'Enumerate the tags to search for this element'"
-        > </select2>
-      </div>
-      <div
-        class="code"
-        v-if="!hideContent"
-        :style="isNotRead ? 'width:100%' : ''"
       >
-        <Editor
-          ref="editor"
-          v-if="isNotRead"
-          :initialValue="cheatsheet.content"
-        />
-        <Viewer
-          v-if="!isNotRead"
-          :initialValue="content"
-          :content="content"
-          v-on:rendered="allAnchorOpenInNewTag($event)"
-        />
-      </div>
+      </select2>
+    </p>
+    <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
+    <Viewer
+      v-if="!isNotRead"
+      :initialValue="content"
+      v-on:rendered="allAnchorOpenInNewTag($event)"
+    />
 
-      <div class="edit-buttons" v-if="isNotRead">
-        <span
-          class="label"
-          :style="
-            'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
-          "
-          >Link:</span
-        >
-        <input
-          :style="
-            'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
-          "
-          v-model="cheatsheet.link"
-          class="
-            w-full
-            px-4
-            py-2
-            mt-2
-            border
-            rounded-md
-            focus:outline-none focus:ring-1 focus:ring-blue-600
-          "
-        />
-        <img src="/images/save.svg" class="save" @click="save" />
-        <img src="/images/x.svg" class="close" @click="cancel" />
-      </div>
-      <Menu
-        v-if="mouseFocus && !isNotRead && !readOnly"
-        :elements="menuElements"
-        :textElements="textMenuElements"
+    <div class="edit-buttons" v-if="isNotRead">
+      <span
+        class="label"
+        :style="
+          'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
+        "
+        >Link:</span
       >
-      </Menu>
+      <input
+        :style="
+          'visibility:' + (isNotRead && !hideContent ? 'visible' : 'hidden')
+        "
+        v-model="cheatsheet.link"
+        class="
+          w-full
+          px-4
+          py-2
+          mt-2
+          border
+          rounded-md
+          focus:outline-none focus:ring-1 focus:ring-blue-600
+        "
+      />
+      <img src="/images/save.svg" class="save" @click="save" />
+      <img src="/images/x.svg" class="close" @click="cancel" />
     </div>
+    <!-- v-if="mouseFocus && !isNotRead && !readOnly" -->
+    <Menu :elements="menuElements" :textElements="textMenuElements"> </Menu>
   </div>
 </template>
 
@@ -113,6 +98,7 @@ import {
   openTabs,
   unique,
   arraysIsEqual,
+  getSmartotekaFabric,
 } from '../../src_jq/common/commonFunctions'
 import Menu from './menu'
 
@@ -141,14 +127,14 @@ export default {
       type: Object,
       default: () => {},
     },
-    commonTagsCount: {
-      type: Number,
-      default: () => 0,
-    },
-    allTags: {
+    commonTags: {
       type: Array,
       default: () => [],
     },
+    // allTags: {
+    //   type: Array,
+    //   default: () => [],
+    // },
     mode: {
       type: String,
       defautl: () => 'read',
@@ -177,6 +163,7 @@ export default {
   },
   data() {
     return {
+      options: [],
       editTags: [],
       editType: 'cheatsheet',
       editorOptions: {
@@ -210,6 +197,9 @@ export default {
     }
   },
   computed: {
+    smartotekaFabric() {
+      return getSmartotekaFabric()
+    },
     isNotRead() {
       return this.currentMode === 'add' || this.currentMode === 'edit'
     },
@@ -248,7 +238,13 @@ export default {
     tags() {
       this.updateEditTags()
 
-      return this.cheatsheet.tags.slice(this.commonTagsCount)
+      return this.cheatsheet.tags.filter(
+        (t) => !(
+          this.commonTags
+            && this.commonTags.length > 0
+            && this.commonTags.findIndex((ct) => t.id === ct.id) >= 0
+        ),
+      )
     },
     content() {
       return this.cheatsheet.content
@@ -265,6 +261,19 @@ export default {
     },
   },
   methods: {
+    tagsLoad() {
+      this.smartotekaFabric
+        .queriesProvider()
+        .getTags()
+        .then((tags, changed) => {
+          if (this.options.length === 0 || changed) {
+            this.options = unique(
+              tags.filter((el) => el),
+              (el) => el.id,
+            )
+          }
+        })
+    },
     getTabs() {
       return [{ url: this.cheatsheet.link }]
     },
@@ -311,8 +320,10 @@ export default {
       this.$emit('move-to-tags', tags)
     },
     addButtonsToCodeBlocks() {
-      $('.code .copy', this.$el).remove()
-      let codeEls = $('.code code', this.$el).parent()
+      let vm = this
+
+      $('code .copy', this.$el).remove()
+      let codeEls = $('code', this.$el)
 
       codeEls.append(
         '<img class="copy" style="display:none" src="/images/copy.svg" data-v-2d0b1742="">',
@@ -320,12 +331,53 @@ export default {
       codeEls.css('position', 'relative')
 
       codeEls.on('mouseleave', function () {
-        $('img', this).hide()
+        let that = this
+
+        let hideWithTimeout = () => {
+          if ($('img', that).hasClass('focus')) {
+            setTimeout(hideWithTimeout, 200)
+          } else {
+            $('img', that).hide()
+          }
+        }
+
+        setTimeout(hideWithTimeout, 200)
       })
+
+      codeEls.on('contextmenu', function (e) {
+        if (e.originalEvent.handle) {
+          return
+        }
+        e.preventDefault()
+
+        let items = []
+        items.push({
+          label: 'Copy',
+          onClick: () => {
+            let text = $(e.target).closest('.toastui-editor-contents').text()
+            navigator.clipboard.writeText(text)
+          },
+        })
+
+        vm.$contextmenu({
+          x: e.pageX,
+          y: e.pageY,
+          items: items,
+        })
+
+        e.originalEvent.handle = true
+      })
+
       codeEls.on('mouseenter', function () {
         $('img', this).show()
       })
 
+      $('img.copy', codeEls).on('mouseleave', function (e) {
+        $(this).removeClass('focus')
+      })
+      $('img.copy', codeEls).on('mouseenter', function (e) {
+        $(this).addClass('focus')
+      })
       $('img.copy', codeEls).on('click', function (e) {
         e.stopPropagation()
 
@@ -364,6 +416,7 @@ export default {
         this.cheatsheet.tags,
         (el) => el.text,
       )
+
       if (tagsIsModified) {
         this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
       }
@@ -374,6 +427,10 @@ export default {
 
       this.cheatsheet.type = this.editType
       let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
+
+      let newTags = this.editTags.filter(el => el.newTag)
+
+      this.smartotekaFabric.KBManager().addTags(newTags)
 
       this.$emit('update-cheatsheet', {
         cheatsheet: saveCheatSheet,
@@ -398,6 +455,9 @@ export default {
       )
     },
     onContextMenu(e) {
+      if (e.handle) {
+        return
+      }
       if ($(e.target).closest('.toastui-editor').length > 0) {
         return
       }
@@ -408,7 +468,14 @@ export default {
 
       if (this.cheatsheet.content) {
         items.push({
-          label: 'Copy content',
+          label: 'Copy text',
+          onClick: () => {
+            let text = $(e.target).closest('.toastui-editor-contents').text()
+            navigator.clipboard.writeText(text)
+          },
+        })
+        items.push({
+          label: 'Copy markdown',
           onClick: () => {
             let text = this.cheatsheet.content
             navigator.clipboard.writeText(text)
@@ -455,7 +522,8 @@ export default {
         items: items,
       })
 
-      e.stopPropagation()
+      e.handle = true
+      // e.stopPropagation()
       return false
     },
     allAnchorOpenInNewTag(event) {
@@ -488,14 +556,6 @@ $sky: #e6f6fe;
   }
 }
 
-.info {
-  border: 2px solid #bbfdc6;
-}
-
-.link {
-  border: 2px solid #e6f6fe;
-}
-
 .info.selected {
   border-color: #6dfc85;
 }
@@ -504,10 +564,9 @@ $sky: #e6f6fe;
   border-color: #9adafa;
 }
 
-.selected {
-  border-width: 4px !important;
-  margin: 6px 6px !important;
-}
+// .selected {
+//   border-width: 2px !important;
+// }
 
 .hide {
   display: none !important;
@@ -515,27 +574,27 @@ $sky: #e6f6fe;
 
 .copy {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -20px;
+  right: -20px;
 }
 
 .cheatsheet {
-  float: left;
-  display: inline;
-  z-index: 10;
-  background: white;
+  border-width: 2px !important;
+  border-style: solid;
+  border-color: #f8fafc;
+  position: relative;
+  display: block;
   font-size: 1rem;
   transition: all 0.2s;
   border-radius: 5px;
   margin: 8px 8px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  margin-top: 16px;
   text-align: left;
   color: $black;
   font-family: $roboto;
   overflow: visible;
 
   .header {
-    background: #e6f6fe;
     font-size: 1.125rem;
     padding: 0 1rem;
     line-height: 1.125rem;
@@ -561,65 +620,32 @@ $sky: #e6f6fe;
   }
 
   .tags {
+    display: flex;
+    flex-wrap: wrap;
     font-size: 0.875rem;
-    color: #6d88df;
+    color: #727680;
     margin-right: 20px;
     span {
       cursor: pointer;
     }
   }
-  .content {
-    position: relative;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    display: grid;
-    row-gap: 4px;
 
-    .code {
-      position: relative;
-      margin-right: 20px;
+  .edit-buttons {
+    display: flex;
+
+    .label {
+      margin: 5px 5px;
+      vertical-align: middle;
+      line-height: 30px;
+    }
+    .close {
+      margin: 5px 5px;
+      cursor: pointer;
     }
 
-    .edit-buttons {
-      display: flex;
-
-      .label {
-        margin: 5px 5px;
-        vertical-align: middle;
-        line-height: 30px;
-      }
-      .close {
-        margin: 5px 5px;
-        cursor: pointer;
-      }
-
-      .save {
-        cursor: pointer;
-        margin: 5px 5px;
-      }
-    }
-    hr {
-      height: 1px;
-      border: none;
-      /* Set the hr color */
-      color: #e6f6fe; /* old IE */
-      background-color: #e6f6fe; /* Modern Browsers */
-    }
-
-    .tags {
-      display: flex;
-      font-size: 0.75rem;
-      flex-wrap: wrap;
-      .tag {
-        text-transform: lowercase;
-        font-weight: 500;
-        padding: 0 8px;
-        background: #9dd5f1;
-        color: white;
-        border-radius: 50vmin;
-        margin-right: 3px;
-        margin-bottom: 3px;
-      }
+    .save {
+      cursor: pointer;
+      margin: 5px 5px;
     }
   }
 

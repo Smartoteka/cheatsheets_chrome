@@ -131,53 +131,45 @@ export function autoCheatsheetsGroup(cheatsheets) {
   return groups
 }
 
-export function cheatsheetsGroupByPreparedGroups(cheatsheets) {
+export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   if (cheatsheets.length === 0) {
     return []
   }
 
   // eslint-disable-next-line no-return-assign
-  cheatsheets.forEach(ch => ch.group = null)
+  cheatsheets.forEach(ch => ch.group = false)
 
   let id = 1
   let groups = cheatsheets.filter(el => el.type === 'group')
     .sort(comparerFuncDesc(gr => !gr.tags || gr.tags.length))
-    .map(gr => {
+
+  groups
+    .forEach(gr => {
+      if (gr.tags.length <= tagsCount) return
+
       let items = cheatsheets.filter(ch => !ch.group
-        && ch.tags
-          .filter(ct => gr.tags.findIndex(gt => ct.id === gt.id) >= 0)
-          .length === gr.tags.length)
-
-      items = items.sort(comparerFuncDesc(el => el === gr))
-
-      let group = {
-        id: parseInt(gr.id + '' + (++id), 10),
-        items: items,
-        commonTagsCount: gr.tags.length,
-        groups: [],
-      }
+        && gr.id !== ch.id
+      && ch.tags
+        .filter(ct => gr.tags.findIndex(gt => ct.id === gt.id) >= 0)
+        .length === gr.tags.length)
 
       items.forEach(ch => {
-        ch.group = group
-
-        if (ch.self) { ch.self.group = group }
+        ch.group = true
       })
-
-      gr.self = group
-      gr.group = null
-
-      return group
     })
 
-  // groups = []
-  groups.push({
+  let returnGroups = [{
+
     id: parseInt((++id), 10),
-    items: cheatsheets.filter(el => !el.group && !el.self),
+    items: cheatsheets.filter(el => !el.group),
     commonTagsCount: 0,
     groups: [],
-  })
+  }]
 
-  groups = groups.filter(el => !el.group && (el.items.length !== 0 || el.groups.length !== 0))
+  // if (returnGroups[0].items.length === 1) {
+  //   returnGroups[0].items = returnGroups[0].items.concat(cheatsheets.filter(el => el.type !== 'group'))
+  // }
+  // groups = groups.filter(el => !el.group && (el.items.length !== 0 || el.groups.length !== 0))
 
-  return groups
+  return returnGroups
 }

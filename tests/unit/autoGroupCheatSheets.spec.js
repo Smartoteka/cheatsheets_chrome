@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { autoCheatsheetsGroup } from '../../src/src_jq/common/cheatSheetsManage'
 
-describe('Cheatsheets group', () => {
+describe('Cheatsheets auto group', () => {
   it('join two with equal part', () => {
     let cheatsheets = [{
       'content': 'Format document Alt + Shift + F',

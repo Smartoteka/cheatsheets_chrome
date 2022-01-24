@@ -1,24 +1,25 @@
 import { unique } from './commonFunctions'
 
 class SmartotekaFabricLocalStorage {
-  #save(smartoteka) {
-    return new Promise(r => chrome.storage.local.set({ Smartoteka: smartoteka }, () => r()))
-  }
-
   #getFromStorage(memberName, defaultValue) {
+    let that = this
     return new Promise((resolve) => {
-      chrome.storage.local.get([memberName], (storage) => {
-        if (!storage || !(storage[memberName])) {
-          console.log('Add ' + memberName)
-          storage = defaultValue
+      if (that[memberName]) {
+        resolve(that[memberName], false)
+      } else {
+        chrome.storage.local.get([memberName], (storage) => {
+          if (!storage || !(storage[memberName])) {
+            console.log('Add ' + memberName)
+            storage = defaultValue
 
-          this.#save(storage)
+            resolve(storage)
+          } else {
+            resolve(storage[memberName])
+          }
 
-          resolve(storage)
-        } else {
-          resolve(storage[memberName])
-        }
-      })
+          that[memberName] = storage[memberName]
+        })
+      }
     })
   }
 
@@ -35,7 +36,16 @@ class SmartotekaFabricLocalStorage {
   }
 
   #saveTags(tags) {
-    return new Promise(r => chrome.storage.local.set({ Tags: unique(tags, el => el.id) }, () => r()))
+    let that = this
+    return new Promise(
+      r => chrome.storage.local.set(
+        { Tags: unique(tags, el => el.id) },
+        () => {
+          that.Tags = null
+          r()
+        },
+      ),
+    )
   }
 
   #saveSpeedDeal(speedDeal) {
@@ -43,7 +53,17 @@ class SmartotekaFabricLocalStorage {
   }
 
   #saveCheatSheets(cheatsheets) {
-    return new Promise(r => chrome.storage.local.set({ CheatSheets: cheatsheets }, () => r()))
+    let that = this
+    return new Promise(
+      r => chrome.storage.local.set(
+        { CheatSheets: cheatsheets },
+        () => {
+          that.Tags = null
+          that.CheatSheets = null
+          r()
+        },
+      ),
+    )
   }
 
   queriesProvider() {
@@ -128,10 +148,6 @@ class SmartotekaFabricLocalStorage {
 
       }
 
-      saveCheatSheets(cheatsheets) {
-        parent.#saveCheatSheets(cheatsheets)
-      }
-
       import(json) {
         let cheatsheets = json.CheatSheets || []
         parent.#saveCheatSheets(cheatsheets)
@@ -157,7 +173,7 @@ class SmartotekaFabricLocalStorage {
 
           parent.#getTags()
             .then(tags => {
-              tags = [...tags, ...newTags]
+              tags = [...tags, ...newTags.map(el => ({ id: el.id, text: el.text }))]
               parent.#saveTags(tags)
 
               resolve()
@@ -183,8 +199,7 @@ class SmartotekaFabricLocalStorage {
             .then(cheatsheets => {
               cheatsheets = [...cheatsheets, ...newCheatSheets]
               parent.#saveCheatSheets(cheatsheets)
-
-              resolve()
+                .then(() => resolve())
             })
         })
       }

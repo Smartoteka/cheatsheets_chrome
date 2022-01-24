@@ -97,12 +97,7 @@
           <!-- :showAll="
               (groups.length === 1 || searchResults.length < 4)
             " -->
-          <div
-            v-if="
-              selectVariants.findIndex((el) => el.title === 'All') < 0 &&
-              groups.length === 0
-            "
-          >
+          <div v-if="selected.length > 0 && groups.length === 0">
             No results found
           </div>
           <CheatSheetGroup
@@ -111,6 +106,7 @@
             :group="group"
             :showChildren="groups.length <= 2"
             :allTags="options"
+            :searchTags="selected"
             v-on:update-cheatsheet="updateCheatSheet($event)"
             v-on:remove-cheatsheets="removeCheatSheets($event)"
             v-on:move-to-tags="moveToTags($event)"
@@ -186,10 +182,8 @@ export default {
         {
           title: 'All', // TODO: enter в поле поиска
           handler: () => {
-            if (this.options.length === 0) {
-              this.refresh()
-              this.selectVariants.pop()
-            }
+            this.selected = []
+            this.refresh()
           },
         },
         // {
@@ -300,7 +294,10 @@ export default {
   computed: {
     groups() {
       let cheatsheets = this.searchResults
-      let result = cheatsheetsGroupByPreparedGroups(cheatsheets)
+      let result = cheatsheetsGroupByPreparedGroups(
+        cheatsheets,
+        this.selected.length,
+      )
 
       return reactive(result)
     },
@@ -324,9 +321,7 @@ export default {
         () => filterTags,
       )
 
-      return this.cheatsheets.filter(
-        (cheatsheet) => filterTags[cheatsheet.query] || filterByTags(cheatsheet),
-      )
+      return this.cheatsheets.filter((cheatsheet) => filterByTags(cheatsheet))
     },
     smartotekaFabric() {
       return getSmartotekaFabric()
@@ -396,19 +391,17 @@ export default {
       }
     },
     tagsLoad() {
-      if (this.options.length === 0) {
-        this.smartotekaFabric
-          .queriesProvider()
-          .getTags()
-          .then((tags) => {
-            this.options = reactive(
-              unique(
-                tags.filter((el) => el),
-                (el) => el.id,
-              ),
+      this.smartotekaFabric
+        .queriesProvider()
+        .getTags()
+        .then((tags, changed) => {
+          if (this.options.length === 0 || changed) {
+            this.options = unique(
+              tags.filter((el) => el),
+              (el) => el.id,
             )
-          })
-      }
+          }
+        })
     },
     startSessionTabDrag(evt, item) {
       // TODO: сделать перетаскивание группами
@@ -627,7 +620,11 @@ export default {
 
 <style lang="scss" scoped>
 .selectElementInLine {
-  div{
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+
+  div {
     line-height: 2em;
     padding: 5px 5px;
   }
@@ -682,20 +679,7 @@ export default {
   margin: 3px 3px;
 }
 
-.selected {
-  color: green;
-}
-
-.unselected {
-  color: inherit;
-}
-
 .pointer {
   cursor: pointer;
-}
-.selectElementInLine {
-  display: flex;
-  flex-direction: row;
-  column-gap: 10px;
 }
 </style>
