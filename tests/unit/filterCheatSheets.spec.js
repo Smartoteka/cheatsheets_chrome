@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import { cheatsheetsGroupByPreparedGroups } from '../../src/src_jq/common/cheatSheetsManage'
-import { setSearchHashs, grapTags } from '../../src/src_jq/common/commonFunctions'
+import { setSearchHashs, findTagsInOrderedTags, tagsToOrderedHashs } from '../../src/src_jq/common/cheatSheetsManage'
+import { grapTags } from '../../src/src_jq/common/commonFunctions'
 
-describe('Cheatsheets prepare group', () => {
-  it('join two in one group', () => {
+describe('search cheatsheets', () => {
+  it('search one by two tags', () => {
     let cheatsheets = [{
       'content': 'item vs code, vs, shortcut, format',
       'date': 1633335302157,
@@ -53,13 +53,43 @@ describe('Cheatsheets prepare group', () => {
 
     let allTags = grapTags(cheatsheets)
 
-    setSearchHashs(cheatsheets, allTags)
+    let tagsMap = setSearchHashs(cheatsheets, allTags)
 
-    let groups = cheatsheetsGroupByPreparedGroups(cheatsheets)
+    let searchTags = tagsToOrderedHashs(['vs code', 'go'].map(tag => tagsMap[tag]))
+    let foundCheatsheets = cheatsheets.filter(cheatsheet => findTagsInOrderedTags(searchTags, cheatsheet.orderedTags))
 
-    expect(groups.length).to.eq(1)
+    expect(foundCheatsheets.length).to.eq(1)
+  })
 
-    expect(groups[0].items.length).to.eq(1)
+  it('search one from one-element colection', () => {
+    let cheatsheet = {
+      'content': 'group vs code, vs, shortcut, go',
+      'date': 1633338304074,
+      'id': 1633338304074,
+      'type': 'group',
+      'tags': [{
+        'id': 'vs code',
+        'text': 'vs code',
+      }, {
+        'id': 'vs',
+        'text': 'vs',
+      }, {
+        'id': 'shortcut',
+        'text': 'shortcut',
+      }, {
+        'id': 'go',
+        'text': 'go',
+      }],
+    }
+
+    let allTags = grapTags([cheatsheet])
+
+    let tagsMap = setSearchHashs([cheatsheet], allTags)
+
+    let searchTags = tagsToOrderedHashs(['vs code', 'go'].map(tag => tagsMap[tag]))
+    let isFoundCheatsheet = findTagsInOrderedTags(searchTags, cheatsheet.orderedTags)
+
+    expect(isFoundCheatsheet).to.eq(true)
   })
 
   it('join two in two groups', () => {

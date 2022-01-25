@@ -1,4 +1,15 @@
 import SmartotekaFabricLocalStorage from './SmartotekaFabricLocalStorage'
+import { comparerFunc } from './rateTags'
+
+export function grapTags(cheatsheets, tags = []) {
+  let allTags = []
+
+  cheatsheets.forEach(el => allTags = allTags.concat(el.tags))
+  allTags = allTags.concat(tags)
+
+  allTags = unique(allTags.filter(el => el), el => el.id)
+  return allTags
+}
 
 export function truncate(text, length, clamp) {
   clamp = clamp || '...'

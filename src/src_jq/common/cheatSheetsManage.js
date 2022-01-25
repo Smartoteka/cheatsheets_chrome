@@ -1,4 +1,4 @@
-import { comparerFuncDesc, comparerFunc } from './rateTags'
+import { comparerFunc } from './rateTags'
 
 function clearGroups(groups) {
   for (let i = 0; i < groups.length; i++) {
@@ -131,6 +131,58 @@ export function autoCheatsheetsGroup(cheatsheets) {
   return groups
 }
 
+export function tagsToOrderedHashs(tags) {
+  return tags.map(el => el.uid).sort(comparerFunc((el) => el))
+}
+
+export function setSearchHashs(cheatsheets, allTags) {
+  let tagsMap = {}
+
+  allTags.forEach(tag => {
+    tag.uid = hashCode(tag.id.toLowerCase())
+
+    tagsMap[tag.id] = tag
+  })
+
+  cheatsheets.forEach(cheatsheet => {
+    cheatsheet.tags = cheatsheet.tags.map(tag => tagsMap[tag.id])
+
+    cheatsheet.orderedTags = tagsToOrderedHashs(cheatsheet.tags)
+  })
+
+  return tagsMap
+}
+
+export function hashCode(str) {
+  let hash = 0; let i; let
+    chr
+  if (str.length === 0) return hash
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + chr
+    hash |= 0 // Convert to 32bit integer
+  }
+  return hash
+}
+
+export function findTagsInOrderedTags(findTags, orderedTags) {
+  if (findTags.length > orderedTags.length) { return false }
+
+  for (let findTagsIndex = 0, orderedTagsIndex = 0; findTagsIndex < findTags.length; findTagsIndex++) {
+    const findTag = findTags[findTagsIndex]
+    while (findTag > orderedTags[orderedTagsIndex] && orderedTagsIndex < orderedTags.length) {
+      orderedTagsIndex += 1
+    }
+
+    if (orderedTagsIndex === orderedTags.length
+      || findTag !== orderedTags[orderedTagsIndex]) {
+      return false
+    }
+  }
+
+  return true
+}
+
 export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   if (cheatsheets.length === 0) {
     return []
@@ -140,8 +192,8 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   cheatsheets.forEach(ch => ch.group = false)
 
   let id = 1
-  let groups = cheatsheets.filter(el => el.type === 'group')
-    .sort(comparerFuncDesc(gr => !gr.tags || gr.tags.length))
+  let groups = cheatsheets.filter(el => el.type === 'group' && el.tags && el.tags.length)
+    .sort(comparerFunc(gr => gr.tags.length))
 
   groups
     .forEach(gr => {
@@ -149,9 +201,9 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
 
       let items = cheatsheets.filter(ch => !ch.group
         && gr.id !== ch.id
-      && ch.tags
-        .filter(ct => gr.tags.findIndex(gt => ct.id === gt.id) >= 0)
-        .length === gr.tags.length)
+        && gr.orderedTags
+        && ch.orderedTags
+        && findTagsInOrderedTags(gr.orderedTags, ch.orderedTags))
 
       items.forEach(ch => {
         ch.group = true

@@ -47,7 +47,7 @@
     <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
 
     <p  :style="'font-size: 20px; padding-top: 5px; margin: 3px 3px;'+
-          'display:' + (cheatsheet.selected ? 'none' : 'inline')
+          'display:' + (cheatsheet.selected ? 'none' : 'block')
         ">
       {{ $filters.truncate(content, truncateHeaderWidth, "...") }}
     </p>
@@ -288,7 +288,7 @@ export default {
             this.options = unique(
               tags.filter((el) => el),
               (el) => el.id,
-            )
+            ).map(el => ({ id: el.uid, text: el.text }))
           }
         })
     },

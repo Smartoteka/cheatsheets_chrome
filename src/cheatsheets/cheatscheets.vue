@@ -139,8 +139,11 @@ import {
   getGroupTags,
   openTabs,
 } from '../src_jq/common/commonFunctions'
-import { cheatsheetsGroupByPreparedGroups } from '../src_jq/common/cheatSheetsManage'
-import { getFilterByFilterTags } from '../src_jq/common/mulitselectTagsHandlers'
+import {
+  cheatsheetsGroupByPreparedGroups,
+  findTagsInOrderedTags,
+} from '../src_jq/common/cheatSheetsManage'
+import { comparerFunc } from '../src_jq/common/rateTags'
 
 window.$ = jQuery
 let $ = jQuery
@@ -302,26 +305,19 @@ export default {
       return reactive(result)
     },
     searchResults() {
-      console.log('searchResults')
-      let selectedTags = this.selected.map((el) => el.text)
+      let tags = this.selected.map((el) => el.text).join(',')
+      if (window.history.state && window.history.state.tags !== tags) {
+        window.history.pushState({ tags: tags }, null, '?tags=' + tags)
+      }
 
-      // TODO: if(selectedTabs.length===0)Вывести топ 10 самых часто используемых
-      let filterTags = {}
-
-      let countTags = 0
-      unique(selectedTags, (el) => el).map((tag) => {
-        countTags += 1
-        filterTags[tag] = countTags
-        return 0
-      })
-
-      filterTags.count = countTags
-      let filterByTags = getFilterByFilterTags(
-        (el) => el,
-        () => filterTags,
+      let findTags = this.selected
+        .map((el) => parseInt(el.id, 10))
+        .sort(comparerFunc((el) => el))
+      console.log('searchResults ' + tags)
+      return this.cheatsheets.filter(
+        (cheatsheet) => !cheatsheet.orderedTags
+          || findTagsInOrderedTags(findTags, cheatsheet.orderedTags),
       )
-
-      return this.cheatsheets.filter((cheatsheet) => filterByTags(cheatsheet))
     },
     smartotekaFabric() {
       return getSmartotekaFabric()
@@ -383,12 +379,9 @@ export default {
   },
   methods: {
     searchTagsChange() {
+      // if (this.cheatsheets.length === 0) {
       this.refresh()
-
-      let tags = this.selected.map((el) => el.text).join(',')
-      if (window.history.state.tags !== tags) {
-        window.history.pushState({ tags: tags }, null, '?tags=' + tags)
-      }
+      //   }
     },
     tagsLoad() {
       this.smartotekaFabric
@@ -399,7 +392,7 @@ export default {
             this.options = unique(
               tags.filter((el) => el),
               (el) => el.id,
-            )
+            ).map((el) => ({ id: el.uid, text: el.text }))
           }
         })
     },
@@ -504,6 +497,7 @@ export default {
       this.resetEditState()
     },
     refresh() {
+      console.log('cheatsheets refresh')
       this.smartotekaFabric
         .queriesProvider()
         .getCheatSheets()

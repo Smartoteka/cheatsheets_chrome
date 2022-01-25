@@ -38,7 +38,7 @@ export default {
     let vm = this
     registerRestrictionMap()
 
-    let sendUpdateEvent = throttle(() => vm.sendUpdateEvent(), 100)
+    let sendUpdateEvent = throttle(() => vm.sendUpdateEvent(), 200)
 
     this.list = createMultiselectTags(
       this.selectList(),
@@ -128,6 +128,7 @@ export default {
         this.selectList().val(value).trigger('change')
       }
 
+      this.$emit('update:modelValue', this.selectList().select2('data'))
       this.$emit('change')
     },
     onContextMenu(e) {
@@ -167,7 +168,7 @@ export default {
     sendUpdateEvent: function () {
       console.log('change')
 
-      this.$emit('update:modelValue', this.selectList().select2('data'))
+      this.setModelValue(this.selectList().select2('data'))
     },
     clearAllFilters() {
       this.selectList().val(null).trigger('change')

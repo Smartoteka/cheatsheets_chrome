@@ -1,4 +1,5 @@
-import { unique } from './commonFunctions'
+import { unique, grapTags } from './commonFunctions'
+import { setSearchHashs } from './cheatSheetsManage'
 
 class SmartotekaFabricLocalStorage {
   #getFromStorage(memberName, defaultValue) {
@@ -150,14 +151,12 @@ class SmartotekaFabricLocalStorage {
 
       import(json) {
         let cheatsheets = json.CheatSheets || []
+
+        let allTags = grapTags(cheatsheets, json.Tags || [])
+
+        setSearchHashs(cheatsheets, allTags)
+
         parent.#saveCheatSheets(cheatsheets)
-
-        let allTags = []
-
-        cheatsheets.forEach(el => allTags = allTags.concat(el.tags))
-        allTags = allTags.concat(json.Tags || [])
-
-        allTags = unique(allTags.filter(el => el), el => el.id)
         parent.#saveTags(allTags)
       }
 
