@@ -45,8 +45,14 @@
       </select2>
     </p>
     <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
-    <Viewer
-      v-if="!isNotRead"
+
+    <p  :style="'font-size: 20px; padding-top: 5px; margin: 3px 3px;'+
+          'display:' + (cheatsheet.selected ? 'none' : 'inline')
+        ">
+      {{ $filters.truncate(content, truncateHeaderWidth, "...") }}
+    </p>
+     <Viewer
+      v-if="!isNotRead&&cheatsheet.selected"
       :initialValue="content"
       v-on:rendered="allAnchorOpenInNewTag($event)"
     />
@@ -77,8 +83,12 @@
       <img src="/images/save.svg" class="save" @click="save" />
       <img src="/images/x.svg" class="close" @click="cancel" />
     </div>
-    <!-- v-if="mouseFocus && !isNotRead && !readOnly" -->
-    <Menu :elements="menuElements" :textElements="textMenuElements"> </Menu>
+    <Menu
+      v-if="mouseFocus && !isNotRead && !readOnly"
+      :elements="menuElements"
+      :textElements="textMenuElements"
+    >
+    </Menu>
   </div>
 </template>
 
@@ -165,6 +175,7 @@ export default {
     return {
       options: [],
       editTags: [],
+      truncateHeaderWidth: 40,
       editType: 'cheatsheet',
       editorOptions: {
         usageStatistics: false,
@@ -190,6 +201,13 @@ export default {
   },
   mounted: function () {
     this.addButtonsToCodeBlocks()
+
+    let getTruncateWidth = () => (window.innerWidth < 490 ? 40 : (window.innerWidth < 640 ? 60 : (window.innerWidth < 1000 ? 70 : 80)))
+    this.truncateHeaderWidth = getTruncateWidth()
+
+    window.addEventListener('resize', () => {
+      this.truncateHeaderWidth = getTruncateWidth()
+    })
   },
   updated: function () {
     if (!this.isNotRead) {
@@ -428,7 +446,7 @@ export default {
       this.cheatsheet.type = this.editType
       let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
 
-      let newTags = this.editTags.filter(el => el.newTag)
+      let newTags = this.editTags.filter((el) => el.newTag)
 
       this.smartotekaFabric.KBManager().addTags(newTags)
 
@@ -581,7 +599,7 @@ $sky: #e6f6fe;
 .cheatsheet {
   border-width: 2px !important;
   border-style: solid;
-  border-color: #f8fafc;
+  border-color: $background;
   position: relative;
   display: block;
   font-size: 1rem;
@@ -622,7 +640,7 @@ $sky: #e6f6fe;
   .tags {
     display: flex;
     flex-wrap: wrap;
-    font-size: 0.875rem;
+    font-size: 14px;
     color: #727680;
     margin-right: 20px;
     span {

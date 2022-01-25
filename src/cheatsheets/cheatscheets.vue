@@ -157,7 +157,7 @@ export default {
   props: {
     popup: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   data() {

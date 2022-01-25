@@ -11,10 +11,14 @@ import VueFeather from 'vue-feather'
 import ContextMenu from '../common/vue3-context-menu/vue3-context-menu.umd.min'
 import App from './cheatscheets'
 import storage from '../utils/storage'
-import { redirectCurrentTab } from '../src_jq/common/commonFunctions'
+import { redirectCurrentTab, truncate } from '../src_jq/common/commonFunctions'
 import '../common/vue3-context-menu/vue3-context-menu.css'
 
-const app = createApp(App)
+const app = createApp(App, { popup: false })
+
+app.config.globalProperties.$filters = {
+  truncate: truncate,
+}
 
 app.use(ElementPlus)
 app.use(ContextMenu)
