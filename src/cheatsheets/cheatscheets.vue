@@ -39,6 +39,7 @@
           :key="ch.id"
           :cheatsheet="ch"
           :readOnly="true"
+          :showMode="'Markdown'"
           draggable="true"
           @dragstart="startSessionTabDrag($event, ch)"
           v-on:selected="selectedSessionCheatSheet($event)"
@@ -107,6 +108,7 @@
             :showChildren="groups.length <= 2"
             :allTags="options"
             :searchTags="selected"
+            :showMode="showMode"
             v-on:update-cheatsheet="updateCheatSheet($event)"
             v-on:remove-cheatsheets="removeCheatSheets($event)"
             v-on:move-to-tags="moveToTags($event)"
@@ -172,6 +174,7 @@ export default {
       newCheatSheet: null,
       sesstionTabs: [],
       addMode: 'Cheat Sheet',
+      showMode: 'Contents',
       addModes: [
         { title: 'Cheat Sheet' },
         {
@@ -183,9 +186,16 @@ export default {
       ],
       selectVariants: [
         {
-          title: 'All', // TODO: enter в поле поиска
+          title: 'Contents',
           handler: () => {
-            this.selected = []
+            this.showMode = 'Contents'
+            this.refresh()
+          },
+        },
+        {
+          title: 'Markdown',
+          handler: () => {
+            this.showMode = 'Markdown'
             this.refresh()
           },
         },
@@ -210,29 +220,7 @@ export default {
       ],
     }
   },
-  beforeMount() {},
-  mounted() {
-    let vm = this
-    console.log('mounted ' + new Date().getTime())
-
-    chrome.runtime.onMessage.addListener(function (
-      request,
-      sender,
-      sendResponse,
-    ) {
-      if (request === 'to-add') {
-        console.log("request === 'to-add'")
-        setTimeout(() => {
-          vm.addCheatSheet()
-          vm.addMode = 'Tab'
-        }, 10)
-      }
-
-      if (request === 'clear') {
-        setTimeout(() => $('search .select2-search__field').focus(), 5)
-      }
-      sendResponse('success!')
-    })
+  beforeMount() {
     let params = new URLSearchParams(window.location.search)
 
     if (params.get('cmd') === 'to-add') {
@@ -243,6 +231,22 @@ export default {
         vm.addMode = 'Tab'
       }, 10)
     }
+
+    let tags = params.get('tags')
+    if (tags) {
+      this.tagsLoad().then(() => {
+        let splittedTags = tags.split(',')
+        this.selected = this.options.filter(o => splittedTags.indexOf(o.text) >= 0)
+      })
+    }
+
+    window.history.pushState(
+      {
+        tags: tags,
+      },
+      null,
+      '?tags=' + tags,
+    )
 
     window.addEventListener(
       'keypress',
@@ -275,24 +279,36 @@ export default {
       },
       false,
     )
-
-    setTimeout(() => $('search .select2-search__field').focus(), 5)
-
-    window.history.pushState(
-      {
-        tags: '',
-      },
-      null,
-      '?tags=',
-    )
-
     window.onpopstate = function (event) {
-      let tags = event.state.tags
+      vm.selected = event.state.tags
         .split(',')
         .map((el) => ({ id: el, text: el }))
-
-      vm.selected = tags
     }
+  },
+  mounted() {
+    let vm = this
+    console.log('mounted ' + new Date().getTime())
+
+    chrome.runtime.onMessage.addListener(function (
+      request,
+      sender,
+      sendResponse,
+    ) {
+      if (request === 'to-add') {
+        console.log("request === 'to-add'")
+        setTimeout(() => {
+          vm.addCheatSheet()
+          vm.addMode = 'Tab'
+        }, 10)
+      }
+
+      if (request === 'clear') {
+        setTimeout(() => $('search .select2-search__field').focus(), 5)
+      }
+      sendResponse('success!')
+    })
+
+    setTimeout(() => $('search .select2-search__field').focus(), 5)
   },
   computed: {
     groups() {
@@ -305,6 +321,9 @@ export default {
       return reactive(result)
     },
     searchResults() {
+      if (this.cheatsheets.length === 0) {
+        return []
+      }
       let tags = this.selected.map((el) => el.text).join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
@@ -384,15 +403,18 @@ export default {
       //   }
     },
     tagsLoad() {
-      this.smartotekaFabric
+      return this.smartotekaFabric
         .queriesProvider()
         .getTags()
         .then((tags, changed) => {
           if (this.options.length === 0 || changed) {
+            let selected = this.selected
             this.options = unique(
               tags.filter((el) => el),
               (el) => el.id,
             ).map((el) => ({ id: el.uid, text: el.text }))
+
+            this.selected = selected
           }
         })
     },
@@ -414,14 +436,16 @@ export default {
       let markdown = ''
 
       if (tab.favIconUrl) {
-        markdown += '![Icon](' + tab.favIconUrl + ')'
+        markdown += '<img align="left" width="16 px" src="' + tab.favIconUrl + '" />&nbsp;'
       }
       markdown += '[' + tab.title + '](' + tab.url + ')'
 
       return markdown
     },
-    moveToTags(tags) {
-      this.selected = tags
+    moveToTags(event) {
+      if (event.event.ctrlKey) {
+        openTabs([{ url: '../cheatsheets/page.html?tags=' + event.tags.map(el => el.text).join(',') }])
+      } else { this.selected = event.tags }
     },
     addCheatSheet() {
       let date = new Date().valueOf()

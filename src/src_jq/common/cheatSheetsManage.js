@@ -1,4 +1,40 @@
-import { comparerFunc } from './rateTags'
+import {
+  comparerFunc, comparerCombine, comparerFuncDesc, comparer,
+} from './rateTags'
+
+function sternBrokoComparer(a, b) {
+  let na = a.d + b.n; let nb = a.n + b.d
+
+  return comparer(na, nb)
+}
+export function getSternBrokoByPos(array, l, r) {
+  if (r - l === 0 || r - l === 1 && array[r] || l + 1 === array.length) {
+    // console.log('return ' + l + ' ' + r)
+    return null
+  }
+  let lv = l < 0 ? { n: 0, d: 1 } : array[l]
+  let rv = r === array.length ? { n: 1, d: 0 } : array[r]
+
+  let n = lv.n + rv.n
+  let d = lv.d + rv.d
+
+  // console.log(JSON.stringify({
+  //   l, r, n, d, p,
+  // }))
+  return { n: n, d: d }
+}
+export function buildSternBrokkoTree(array, l, r) {
+  let dn = getSternBrokoByPos(array, l, r)
+
+  if (!dn) { return }
+
+  let p = Math.ceil((l + r) / 2)
+  array[p].n = dn.n
+  array[p].d = dn.d
+
+  buildSternBrokkoTree(array, p, r)
+  buildSternBrokkoTree(array, l, p)
+}
 
 function clearGroups(groups) {
   for (let i = 0; i < groups.length; i++) {
@@ -136,6 +172,9 @@ export function tagsToOrderedHashs(tags) {
 }
 
 export function setSearchHashs(cheatsheets, allTags) {
+  if (!allTags) {
+    allTags = Array.prototype.concat.apply([], cheatsheets.filter(el => el.tags).map(el => el.tags))
+  }
   let tagsMap = {}
 
   allTags.forEach(tag => {
@@ -154,6 +193,8 @@ export function setSearchHashs(cheatsheets, allTags) {
 }
 
 export function hashCode(str) {
+  str = str.toLowerCase()
+
   let hash = 0; let i; let
     chr
   if (str.length === 0) return hash
@@ -189,7 +230,7 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   }
 
   // eslint-disable-next-line no-return-assign
-  cheatsheets.forEach(ch => ch.group = false)
+  cheatsheets.forEach(ch => ch.inGroup = false)
 
   let id = 1
   let groups = cheatsheets.filter(el => el.type === 'group' && el.tags && el.tags.length)
@@ -199,21 +240,31 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
     .forEach(gr => {
       if (gr.tags.length <= tagsCount) return
 
-      let items = cheatsheets.filter(ch => !ch.group
+      let items = cheatsheets.filter(ch => !ch.inGroup
         && gr.id !== ch.id
         && gr.orderedTags
         && ch.orderedTags
         && findTagsInOrderedTags(gr.orderedTags, ch.orderedTags))
 
       items.forEach(ch => {
-        ch.group = true
+        ch.inGroup = true
       })
     })
 
   let returnGroups = [{
 
     id: parseInt((++id), 10),
-    items: cheatsheets.filter(el => !el.group),
+    items:
+      cheatsheets
+        .filter(el => !el.inGroup)
+        .sort(
+          comparerCombine([
+            comparerFuncDesc(
+              ch => ch.type,
+            ),
+            sternBrokoComparer,
+          ]),
+        ),
     commonTagsCount: 0,
     groups: [],
   }]
@@ -221,7 +272,7 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   // if (returnGroups[0].items.length === 1) {
   //   returnGroups[0].items = returnGroups[0].items.concat(cheatsheets.filter(el => el.type !== 'group'))
   // }
-  // groups = groups.filter(el => !el.group && (el.items.length !== 0 || el.groups.length !== 0))
+  // groups = groups.filter(el => !el.inGroup && (el.items.length !== 0 || el.groups.length !== 0))
 
   return returnGroups
 }

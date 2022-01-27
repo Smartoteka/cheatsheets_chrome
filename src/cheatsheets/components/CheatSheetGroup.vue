@@ -7,14 +7,14 @@
       @dragover="dragOver($event)"
       @contextmenu="onHeaderContextMenu($event)"
     >
+     <!-- @click.self="showChildren = !showChildren" -->
       <div
         class="header"
         @mouseenter="mouseFocus = true"
         @mouseleave="mouseFocus = false"
-        @click.self="showChildren = !showChildren"
 
       >
-        <div class="title">
+        <!-- <div class="title">
           <span
             class="tag"
             v-for="tag in tags"
@@ -30,12 +30,9 @@
             "
             @click.self="showChildren = !showChildren"
           />
-        </div>
-        <Menu
-          v-if="mouseFocus && menuElements.length > 0"
-          :elements="menuElements"
-        >
-        </Menu>
+        </div> -->
+        <!-- v-if="mouseFocus && menuElements.length > 0" -->
+        <Menu v-if=" mouseFocus && menuElements.length > 0" :elements="menuElements"> </Menu>
         <!-- <img class="add" src="/images/plus-square.svg" @click="addCheatSheet" /> -->
         <!-- v-if="group.items.findIndex((el) => el.isNew) < 0" -->
       </div>
@@ -48,9 +45,9 @@
             :cheatsheet="cheatsheet"
             :commonTags="searchTags"
             :allTags="allTags"
+            :showMode="showMode"
             v-on:selected="selectedCheatSheet($event)"
             v-on:selected-few-elements="selectedFewCheatSheets($event)"
-
             v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
             v-on:remove-cheatsheets="
               $emit('remove-cheatsheets', {
@@ -114,6 +111,7 @@ export default {
     Menu,
   },
   props: {
+    showMode: String,
     group: {
       type: Object,
       default: () => {},
@@ -207,17 +205,17 @@ export default {
         ])
       }
 
-      menuItems.push(
-        {
-          text: 'Delete group',
-          handler: () => {
-            this.$emit('remove-cheatsheets', {
-              group: this.group,
-              cheatsheets: this.group.items.filter(el => el.self && el.self.id === this.group.id),
-            })
-          },
+      menuItems.push({
+        text: 'Delete group',
+        handler: () => {
+          this.$emit('remove-cheatsheets', {
+            group: this.group,
+            cheatsheets: this.group.items.filter(
+              (el) => el.self && el.self.id === this.group.id,
+            ),
+          })
         },
-      )
+      })
       return menuItems
     },
     isContainsLink() {
@@ -229,9 +227,6 @@ export default {
     tags() {
       return getGroupTags(this.group)
     },
-    // isManyChildren() {
-    //   return this.group.items.length > 0 || this.group.groups.length > 0
-    // },
   },
   methods: {
     startCheatSheetDrag(event, item) {
@@ -299,10 +294,15 @@ export default {
       }
     },
     onHeaderContextMenu(e) {
-      if (e.handle) { return }
+      if (e.handle) {
+        return
+      }
       e.preventDefault()
 
-      let items = this.menuElements.map(el => ({ label: el.text, onClick: el.handler }))
+      let items = this.menuElements.map((el) => ({
+        label: el.text,
+        onClick: el.handler,
+      }))
 
       // shou our menu
       this.$contextmenu({
@@ -316,12 +316,14 @@ export default {
       this.lastSelected = cheatsheet.selected ? cheatsheet : null
     },
     selectedFewCheatSheets(event) {
-      let from = this.group.items.findIndex(el => el === this.lastSelected)
-      if (from < 0) { from = 0 }
-      let to = this.group.items.findIndex(el => el === event.cheatsheet)
+      let from = this.group.items.findIndex((el) => el === this.lastSelected)
+      if (from < 0) {
+        from = 0
+      }
+      let to = this.group.items.findIndex((el) => el === event.cheatsheet)
 
       if (!event.event.ctrlKey) {
-        this.group.items.forEach(el => el.selected = false)
+        this.group.items.forEach((el) => (el.selected = false))
       }
 
       let max = Math.max(from, to)
@@ -364,6 +366,9 @@ $sky: #8ef7a0;
   border: 2px solid #e6f6fe;
 }
 
+.header{
+  height: 15px;
+}
 // .group {
 //   padding-top: 10px;
 //   padding-bottom: 10px;

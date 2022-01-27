@@ -55,7 +55,7 @@ export function select2UpdateTags(selector, tags) {
   select2
     .select2('data')
     .forEach(v => {
-      v.index = tags.findIndex(t => t.id === v.id)
+      v.index = tags.findIndex(t => t.id == v.id)
       if (v.index < 0) { dataAdapter.unselect(v) } else { v.text = tags[v.index].text }
     })
 

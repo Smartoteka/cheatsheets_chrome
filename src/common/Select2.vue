@@ -22,6 +22,7 @@ import registerRestrictionMap from '../src_jq/common/restrictionMap'
 import '../src_jq/libraries/select2'
 
 import createMultiselectTags from '../src_jq/common/multiselectTags'
+import { hashCode } from '@/src_jq/common/cheatSheetsManage'
 
 window.$ = $
 
@@ -52,6 +53,10 @@ export default {
     this.list.on('change', sendUpdateEvent)
 
     $('.select2-search__field', this.$el).on('keypress', function (event) {
+      vm.$emit('tags-input', event)
+    })
+
+    $('.select2-search__field', this.$el).on('onpaste', function (event) {
       vm.$emit('tags-input', event)
     })
   },
@@ -107,9 +112,8 @@ export default {
       if (Array.isArray(value)) {
         strVal = JSON.stringify(
           value.map((el) => ({
-            id: el.id,
+            id: typeof (el.id) === 'string' ? parseInt(el.id, 10) : el.id,
             text: el.text,
-            selected: el.selected,
           })),
         )
       } else {
@@ -156,7 +160,7 @@ export default {
                 let tags = text
                   .split(',')
                   .map((el) => el.trim())
-                  .map((el) => ({ id: el, text: el }))
+                  .map((el) => ({ id: '' + hashCode(el), text: el }))
 
                 vm.setModelValue(vm.modelValue.concat(tags))
               })

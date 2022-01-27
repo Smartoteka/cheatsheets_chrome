@@ -10,14 +10,16 @@ export function comparerFunc(get) { return (a, b) => comparer(get(a), get(b)) }
 
 export function comparerFuncDesc(get) { return (a, b) => comparer(get(a), get(b)) * -1 }
 
-let comparerCombine = (comparators) => (a, b) => {
-  for (let i = 0; i < comparators.length; i++) {
-    let result = comparerFunc(comparators[i])(a, b)
+export function comparerCombine(comparators) {
+  return (a, b) => {
+    for (let i = 0; i < comparators.length; i++) {
+      let result = comparators[i](a, b)
 
-    if (result !== 0) return result
+      if (result !== 0) return result
+    }
+
+    return 0
   }
-
-  return 0
 }
 
 export function orderByRate(array, term) {
@@ -40,7 +42,7 @@ export function orderByRate(array, term) {
   result = result
     .sort(
       comparerCombine([
-        el => el.rate,
+        comparerFunc(el => el.rate),
         // el => el.item.prefixCount,
         //   el => el.item.tagCount
       ]),

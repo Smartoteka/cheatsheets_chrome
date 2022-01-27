@@ -1,5 +1,5 @@
-import { unique, grapTags } from './commonFunctions'
-import { setSearchHashs } from './cheatSheetsManage'
+import { unique, grapTags, unwrapCheatSheet } from './commonFunctions'
+import { setSearchHashs, hashCode, buildSternBrokkoTree } from './cheatSheetsManage'
 
 class SmartotekaFabricLocalStorage {
   #getFromStorage(memberName, defaultValue) {
@@ -152,10 +152,12 @@ class SmartotekaFabricLocalStorage {
       import(json) {
         let cheatsheets = json.CheatSheets || []
 
+        cheatsheets = cheatsheets.map((cheatsheet) => unwrapCheatSheet(cheatsheet, cheatsheet.tags))
         let allTags = grapTags(cheatsheets, json.Tags || [])
 
         setSearchHashs(cheatsheets, allTags)
 
+        buildSternBrokkoTree(cheatsheets, -1, cheatsheets.length)
         parent.#saveCheatSheets(cheatsheets)
         parent.#saveTags(allTags)
       }
@@ -172,7 +174,7 @@ class SmartotekaFabricLocalStorage {
 
           parent.#getTags()
             .then(tags => {
-              tags = [...tags, ...newTags.map(el => ({ id: el.id, text: el.text }))]
+              tags = [...tags, ...newTags.map(el => ({ id: el.id, text: el.text, uid: hashCode(el.id.toLowerCase()) }))]
               parent.#saveTags(tags)
 
               resolve()
@@ -194,6 +196,9 @@ class SmartotekaFabricLocalStorage {
             reject('Cheatsheet should contains tags!')
             return
           }
+
+          setSearchHashs(newCheatSheets)
+
           parent.#getCheatSheets()
             .then(cheatsheets => {
               cheatsheets = [...cheatsheets, ...newCheatSheets]
@@ -207,6 +212,8 @@ class SmartotekaFabricLocalStorage {
         return new Promise(resolve => {
           parent.#getCheatSheets()
             .then(cheatsheets => {
+              setSearchHashs(updateCheatSheets)
+
               updateCheatSheets
                 .forEach(cheatSheet => {
                   let index = cheatsheets.findIndex(el => el.id === cheatSheet.id)

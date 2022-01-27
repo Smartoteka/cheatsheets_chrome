@@ -220,6 +220,8 @@ export function unwrapCheatSheet(reactive, tags) {
     date: reactive.date,
     content: reactive.content,
     tags: unique(tags.map((el) => ({ id: el.id, text: el.text })), el => el.id),
+    n: reactive.n,
+    d: reactive.d,
   }
 
   if (reactive.link) { result.link = reactive.link }

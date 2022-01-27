@@ -1,4 +1,5 @@
 import Fuse from '../libraries/fuse'
+import { hashCode } from './cheatSheetsManage'
 
 export default function createMultiselectTags(selector, tags, helpTags, placeholder) {
   tags = tags.filter(el => el.id)
@@ -43,7 +44,7 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
 
         return [
           {
-            id: term,
+            id: '' + hashCode(term),
             text: term,
             tag: true,
             newTag: true,
@@ -52,9 +53,25 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
           ...tags]
       }
 
+      let termhash = '' + hashCode(term)
       if (!params.finded) {
+        {
+          const select2 = $(selector)
+          let dataAdapter = select2.data('select2').dataAdapter
+
+          let $option = dataAdapter.$element.find('option').filter(function (i, elm) {
+            return elm.value == termhash
+          })
+
+          let findedtag = { id: termhash, text: term }
+          if ($option.length) {
+            dataAdapter.select(findedtag)
+            return findedtag
+          }
+        }
+
         return {
-          id: term,
+          id: termhash,
           text: term,
           tag: true,
           newTag: true,

@@ -5,7 +5,7 @@
         class="ctrl-img"
         :src="'/images/' + l.icon"
         :title="l.title"
-        v-on:click.prevent="openTab(l.url)"
+        v-on:click.prevent="openTab(l.url())"
     /></a>
     <slot></slot>
   </nav>
@@ -26,7 +26,7 @@ export default {
     return {
       links: [
         {
-          url: '../src_jq/settings/settings.html',
+          url: () => '../src_jq/settings/settings.html',
           title: 'settings',
           icon: 'settings.svg',
         },
@@ -38,7 +38,7 @@ export default {
   mounted() {
     if (this.popup) {
       this.links.unshift({
-        url: '../cheatsheets/page.html',
+        url: () => window.location.href,
         title: 'fullscreen',
         icon: 'maximize-2.svg',
       })

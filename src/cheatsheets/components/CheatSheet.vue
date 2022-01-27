@@ -28,16 +28,21 @@
           style="width: 15px; height: 15px; margin-right: 5px"
           src="/images/arrow-down.svg"
           @click="
-            moveToTags(tags.length > 0 ? tags[tags.length - 1].text : '')
+            moveToTags(
+              tags.length > 0 ? tags[tags.length - 1].text : '',
+              $event
+            )
           "
       /></span>
-      <span v-for="tag in tags" :key="tag.id" @click="moveToTags(tag.text)"
+      <span
+        v-for="tag in tags"
+        :key="tag.id"
+        @click="moveToTags(tag.text, $event)"
         >{{ tag.text }}&nbsp;&nbsp;</span
       >
     </p>
     <p v-if="isNotRead">
       <select2
-        v-on:tags-input="tagsLoad"
         :options="options"
         v-model="editTags"
         :placeholder="'Enumerate the tags to search for this element'"
@@ -46,13 +51,17 @@
     </p>
     <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
 
-    <p  :style="'font-size: 20px; padding-top: 5px; margin: 3px 3px;'+
-          'display:' + (cheatsheet.selected ? 'none' : 'block')
-        ">
+    <p
+      :style="
+        'font-size: 20px; padding-top: 5px; margin: 3px 3px;' +
+        'display:' +
+        (cheatsheet.selected || showMode === 'Markdown' ? 'none' : 'block')
+      "
+    >
       {{ $filters.truncate(content, truncateHeaderWidth, "...") }}
     </p>
-     <Viewer
-      v-if="!isNotRead&&cheatsheet.selected"
+    <Viewer
+      v-if="!isNotRead && (cheatsheet.selected || showMode === 'Markdown')"
       :initialValue="content"
       v-on:rendered="allAnchorOpenInNewTag($event)"
     />
@@ -83,6 +92,7 @@
       <img src="/images/save.svg" class="save" @click="save" />
       <img src="/images/x.svg" class="close" @click="cancel" />
     </div>
+    <!-- v-if="mouseFocus && !isNotRead && !readOnly" -->
     <Menu
       v-if="mouseFocus && !isNotRead && !readOnly"
       :elements="menuElements"
@@ -133,6 +143,9 @@ export default {
     'click-outside': ClickOutsideEvent,
   },
   props: {
+    showMode: {
+      type: String,
+    },
     cheatsheet: {
       type: Object,
       default: () => {},
@@ -202,7 +215,15 @@ export default {
   mounted: function () {
     this.addButtonsToCodeBlocks()
 
-    let getTruncateWidth = () => (window.innerWidth < 490 ? 40 : (window.innerWidth < 640 ? 60 : (window.innerWidth < 1000 ? 70 : 80)))
+    let getTruncateWidth = () => (window.innerWidth < 600
+      ? 40
+      : window.innerWidth < 700
+        ? 55
+        : window.innerWidth < 800
+          ? 60
+          : window.innerWidth < 1000
+            ? 70
+            : 80)
     this.truncateHeaderWidth = getTruncateWidth()
 
     window.addEventListener('resize', () => {
@@ -260,7 +281,7 @@ export default {
         (t) => !(
           this.commonTags
             && this.commonTags.length > 0
-            && this.commonTags.findIndex((ct) => t.id === ct.id) >= 0
+            && this.commonTags.findIndex((ct) => t.uid == ct.id) >= 0
         ),
       )
     },
@@ -271,7 +292,7 @@ export default {
   watch: {
     currentMode(value) {
       if (value) {
-        this.updateEditTags()
+        this.tagsLoad().then(() => this.updateEditTags())
       }
     },
     type(value) {
@@ -280,15 +301,18 @@ export default {
   },
   methods: {
     tagsLoad() {
-      this.smartotekaFabric
+      return this.smartotekaFabric
         .queriesProvider()
         .getTags()
         .then((tags, changed) => {
           if (this.options.length === 0 || changed) {
+            let selectedTags = this.editTags
             this.options = unique(
               tags.filter((el) => el),
               (el) => el.id,
-            ).map(el => ({ id: el.uid, text: el.text }))
+            ).map((el) => ({ id: el.uid, text: el.text }))
+
+            this.editTags = selectedTags
           }
         })
     },
@@ -326,16 +350,26 @@ export default {
         this.$emit('selected', this.cheatsheet)
       }
     },
-    moveToTags(tagId) {
+    getTagsUntilPosition(tagId) {
       let flag = true
-      let tags = takeWhile(this.cheatsheet.tags, (el) => {
-        let prevValue = flag
-        flag = el.id !== tagId
+      let tags = (this.commonTags || []).concat(
+        takeWhile(this.cheatsheet.tags, (el) => {
+          let prevValue = flag
+          flag = el.id !== tagId
 
-        return prevValue
+          return prevValue
+        }).map((el) => ({ id: el.uid, text: el.text })),
+      )
+
+      return tags
+    },
+    moveToTags(tagId, event) {
+      let tags = this.getTagsUntilPosition(tagId)
+
+      this.$emit('move-to-tags', {
+        tags: tags,
+        event: event,
       })
-
-      this.$emit('move-to-tags', tags)
     },
     addButtonsToCodeBlocks() {
       let vm = this
@@ -436,7 +470,14 @@ export default {
       )
 
       if (tagsIsModified) {
-        this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el.id)
+        this.cheatsheet.tags = unique(
+          this.editTags.slice(0),
+          (el) => el.id,
+        ).map((t) => ({
+          id: t.text,
+          text: t.text,
+          uid: parseInt(t.id, 10),
+        }))
       }
 
       if (this.$refs.editor) {

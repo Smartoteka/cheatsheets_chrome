@@ -96,7 +96,7 @@ export default {
     min-height: 2em;
     position: absolute;
     top: 9px;
-    left: 0px;
+    right: 5px;
     background: white;
     flex-direction: column;
     font-size: 0.95rem;
@@ -117,6 +117,9 @@ export default {
   ul.menu {
     z-index: 1;
     min-width: 200px;
+    position: absolute;
+    top: 25px;
+    right: 0px;
     background: white;
     flex-direction: column;
     width: 10rem;
