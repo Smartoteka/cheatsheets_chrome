@@ -34,17 +34,20 @@
           v-on:cancel-edit="cancelNewCheatSheet"
           :mode="'add'"
         ></CheatSheet>
-        <CheatSheet
-          v-for="ch in sesstionTabs"
-          :key="ch.id"
-          :cheatsheet="ch"
-          :readOnly="true"
-          :showMode="'Markdown'"
-          draggable="true"
-          @dragstart="startSessionTabDrag($event, ch)"
-          v-on:selected="selectedSessionCheatSheet($event)"
-          v-on:selected-few-elements="selectedSessionFewCheatSheets($event)"
-        ></CheatSheet>
+        <div ref="sessionTabClickContainer">
+          <CheatSheet
+            v-for="ch in sesstionTabs"
+            :key="ch.id"
+            :cheatsheet="ch"
+            :readOnly="true"
+            :showMode="'Markdown'"
+            :clickContainer="this.$refs.sessionTabClickContainer"
+            draggable="true"
+            @dragstart="startSessionTabDrag($event, ch)"
+            v-on:selected="selectedSessionCheatSheet($event)"
+            v-on:selected-few-elements="selectedSessionFewCheatSheets($event)"
+          ></CheatSheet>
+        </div>
       </addBlock>
 
       <div
@@ -89,7 +92,9 @@
             v-for="v in selectVariants"
             :key="v.title"
             @click="v.handler()"
-            class="pointer"
+             :class="
+              'pointer ' + (v.title == showMode ? 'selected' : 'unselected')
+            "
           >
             {{ v.title }}
           </div>
@@ -357,10 +362,12 @@ export default {
           if (this.newCheatSheet) {
             this.newCheatSheet.link = ''
             this.newCheatSheet.type = 'cheatsheet'
+            this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
           }
           break
         case 'Group':
           this.newCheatSheet.type = 'group'
+          this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
           break
 
         case 'Session':
@@ -370,12 +377,16 @@ export default {
 
             let sessionTag = 'Session'
             let timetag = date.toLocaleString().replace(',', '')
-            this.newCheatSheet.tags.push(
-              { id: hashCode(sessionTag), text: sessionTag },
-            )
-            this.newCheatSheet.tags.push(
-              { id: hashCode(timetag), text: timetag },
-            )
+            this.newCheatSheet.tags.push(reactive({
+              id: hashCode(sessionTag),
+              text: sessionTag,
+              sessionTag: true,
+            }))
+            this.newCheatSheet.tags.push(reactive({
+              id: hashCode(timetag),
+              text: timetag,
+              sessionTag: true,
+            }))
             // this.newCheatSheet.content = ''
             this.newCheatSheet.type = 'group'
 
@@ -392,8 +403,14 @@ export default {
               }
             })
 
-            let sessionCheatSheets = [this.newCheatSheet].concat(this.sesstionTabs)
-            buildSternBrokkoTree(sessionCheatSheets, -1, sessionCheatSheets.length)
+            let sessionCheatSheets = [this.newCheatSheet].concat(
+              this.sesstionTabs,
+            )
+            buildSternBrokkoTree(
+              sessionCheatSheets,
+              -1,
+              sessionCheatSheets.length,
+            )
           })
           break
         case 'Tab':
@@ -623,7 +640,7 @@ export default {
         .updateCheatSheets(cheatsheets)
         .then(() => {
           cheatsheets.forEach((ch) => {
-            let index = group.items.findIndex(item => item.id === ch.id)
+            let index = group.items.findIndex((item) => item.id === ch.id)
             group.items[index].d = ch.d
             group.items[index].n = ch.n
           })

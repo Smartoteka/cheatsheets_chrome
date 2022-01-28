@@ -148,6 +148,7 @@ export default {
     'click-outside': ClickOutsideEvent,
   },
   props: {
+    clickContainer: Object,
     showMode: {
       type: String,
     },
@@ -357,7 +358,8 @@ export default {
       if (this.cheatsheet.selected) {
         console.log('outside!')
         if (
-          !(
+          (!this.clickContainer || this.clickContainer.contains(event.target))
+          && !(
             event.ctrlKey
             || event.shiftKey
             || (event.target.parentElement
@@ -485,9 +487,18 @@ export default {
       })
     },
     updateEditTags(concat) {
-      if (concat) {
-        this.editTags = unique(this.editTags.slice(0).concat(this.cheatsheet.tags), el => el.id)
+      if (!this.isNotRead) { return }
+
+      if (concat && this.prevTags) {
+        let addedTags = this.cheatsheet.tags.filter(ch => this.prevTags.findIndex(pch => pch.id == ch.id) < 0)
+
+        this.editTags = unique(this.editTags.slice(0).concat(addedTags), el => el.id)
+
+        let removed = this.prevTags.filter(pch => this.cheatsheet.tags.findIndex(ch => pch.id == ch.id) < 0)
+
+        this.editTags = this.editTags.filter(et => removed.findIndex(r => et.id == r.id) < 0)
       } else { this.editTags = this.cheatsheet.tags.slice(0) }
+      this.prevTags = this.cheatsheet.tags.slice(0)
     },
     toEditMode() {
       this.currentMode = 'edit'

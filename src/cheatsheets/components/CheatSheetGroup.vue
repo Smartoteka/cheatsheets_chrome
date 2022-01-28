@@ -4,12 +4,11 @@
       :class="'group ' + (isContainsLink ? 'link' : 'info')"
       @contextmenu="onHeaderContextMenu($event)"
     >
-     <!-- @click.self="showChildren = !showChildren" -->
+      <!-- @click.self="showChildren = !showChildren" -->
       <div
         class="header"
         @mouseenter="mouseFocus = true"
         @mouseleave="mouseFocus = false"
-
       >
         <!-- <div class="title">
           <span
@@ -29,13 +28,17 @@
           />
         </div> -->
         <!-- v-if="mouseFocus && menuElements.length > 0" -->
-        <Menu v-if=" mouseFocus && menuElements.length > 0" :elements="menuElements"> </Menu>
+        <Menu
+          v-if="mouseFocus && menuElements.length > 0"
+          :elements="menuElements"
+        >
+        </Menu>
         <!-- <img class="add" src="/images/plus-square.svg" @click="addCheatSheet" /> -->
         <!-- v-if="group.items.findIndex((el) => el.isNew) < 0" -->
       </div>
       <!-- group.items.slice(0, 2) -->
       <div class="content">
-        <div class="row">
+        <div class="row" ref="groupClickContainer">
           <CheatSheet
             v-for="cheatsheet in showChildren ? group.items : []"
             :key="cheatsheet.id"
@@ -43,6 +46,7 @@
             :commonTags="searchTags"
             :allTags="allTags"
             :showMode="showMode"
+            :clickContainer="this.$refs.groupClickContainer"
             v-on:selected="selectedCheatSheet($event)"
             v-on:selected-few-elements="selectedFewCheatSheets($event)"
             v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
@@ -55,8 +59,14 @@
             v-on:move-to-tags="$emit('move-to-tags', $event)"
             draggable="true"
             @dragstart="startCheatSheetDrag($event, cheatsheet)"
-             v-on:drop-session-tabs-to-group="$event.group=this.group;$emit('drop-session-tabs-to-group', $event)"
-            v-on:drop-cheat-sheets-in-group="$event.group=this.group;$emit('drop-cheat-sheets-in-group', $event)"
+            v-on:drop-session-tabs-to-group="
+              $event.group = this.group;
+              $emit('drop-session-tabs-to-group', $event);
+            "
+            v-on:drop-cheat-sheets-in-group="
+              $event.group = this.group;
+              $emit('drop-cheat-sheets-in-group', $event);
+            "
           ></CheatSheet>
         </div>
         <!-- <div class="row" v-if="group.groups.length > 0 && showChildren">
@@ -336,7 +346,7 @@ $sky: #8ef7a0;
   border: 2px solid #e6f6fe;
 }
 
-.header{
+.header {
   height: 15px;
 }
 // .group {
