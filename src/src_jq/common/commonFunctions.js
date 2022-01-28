@@ -84,7 +84,7 @@ export function mergeArraysById(a1, a2, getId) {
 }
 
 export function unique(array, getFieldValue) {
-  return array.filter((value, index, self) => self.findIndex(el => getFieldValue(el) === getFieldValue(value)) === index)
+  return array.filter((value, index, self) => self.findIndex(el => getFieldValue(el) == getFieldValue(value)) === index)
 }
 
 export function joinArrays(arrays, getValue) {

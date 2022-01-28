@@ -92,7 +92,7 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
         let currentState = tags.join(',') + ',' + term.term
         if (multilist.lastSearch !== currentState) {
           if (tags.length > 0) {
-            multilist.searchedRows = window.getAdditionalTags(tags).map(el => ({ item: { id: el } }))
+            multilist.searchedRows = window.getAdditionalTags(tags).map(el => ({ item: { text: el } }))
           }
 
           multilist.lastSearch = currentState
@@ -102,7 +102,7 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
         multilist.lastSearch = term.term
       }
 
-      let find = (multilist.searchedRows || []).find(el => el.item.id === text.id)
+      let find = (multilist.searchedRows || []).find(el => el.item.text === text.text)
       if (find) {
         text.score = find.score
         return text

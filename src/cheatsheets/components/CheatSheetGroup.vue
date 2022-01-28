@@ -2,9 +2,6 @@
   <div>
     <div
       :class="'group ' + (isContainsLink ? 'link' : 'info')"
-      @drop="onDrop($event)"
-      @dragleave="dragLeave($event)"
-      @dragover="dragOver($event)"
       @contextmenu="onHeaderContextMenu($event)"
     >
      <!-- @click.self="showChildren = !showChildren" -->
@@ -58,9 +55,11 @@
             v-on:move-to-tags="$emit('move-to-tags', $event)"
             draggable="true"
             @dragstart="startCheatSheetDrag($event, cheatsheet)"
+             v-on:drop-session-tabs-to-group="$event.group=this.group;$emit('drop-session-tabs-to-group', $event)"
+            v-on:drop-cheat-sheets-in-group="$event.group=this.group;$emit('drop-cheat-sheets-in-group', $event)"
           ></CheatSheet>
         </div>
-        <div class="row" v-if="group.groups.length > 0 && showChildren">
+        <!-- <div class="row" v-if="group.groups.length > 0 && showChildren">
           <div class="column">
             <img class="ctrl-img" src="/images/corner-down-right.svg" />
           </div>
@@ -78,7 +77,7 @@
               v-on:move-to-tags="$emit('move-to-tags', $event)"
             ></CheatSheetGroup>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -104,7 +103,8 @@ export default {
     'update-cheatsheet',
     'remove-cheatsheets',
     'move-to-tags',
-    'drop-cheat-sheets-to-group',
+    'drop-cheat-sheets-in-group',
+    'drop-session-tabs-to-group',
   ],
   components: {
     CheatSheet,
@@ -262,36 +262,6 @@ export default {
       })
 
       this.$emit('move-to-tags', tags)
-    },
-    dragOver(event) {
-      event.preventDefault()
-    },
-    dragLeave(event) {
-      event.preventDefault()
-      event.stopPropagation()
-    },
-    onDrop(event) {
-      const dataStr = event.dataTransfer.getData('data')
-      let data = JSON.parse(dataStr)
-
-      switch (data.type) {
-        case 'sessionTabs':
-          this.$emit('drop-session-tabs-to-group', {
-            event: event,
-            ids: data.ids,
-            group: this.group,
-          })
-          break
-        case 'moveCheatSheets':
-          this.$emit('drop-cheat-sheets-to-group', {
-            event: event,
-            cheatsheets: data.cheatsheets,
-            group: this.group,
-          })
-          break
-        default:
-          throw new Error('Unexpected type of drop ' + data.type)
-      }
     },
     onHeaderContextMenu(e) {
       if (e.handle) {

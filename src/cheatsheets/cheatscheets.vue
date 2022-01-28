@@ -113,7 +113,7 @@
             v-on:remove-cheatsheets="removeCheatSheets($event)"
             v-on:move-to-tags="moveToTags($event)"
             v-on:drop-session-tabs-to-group="sessionTabsToGroup($event)"
-            v-on:drop-cheat-sheets-to-group="dropCheatSheetsToGroup($event)"
+            v-on:drop-cheat-sheets-in-group="dropCheatSheetsInGroup($event)"
           />
         </div>
       </search>
@@ -144,6 +144,10 @@ import {
 import {
   cheatsheetsGroupByPreparedGroups,
   findTagsInOrderedTags,
+  sortSternBroko,
+  moveCheatSheets,
+  hashCode,
+  buildSternBrokkoTree,
 } from '../src_jq/common/cheatSheetsManage'
 import { comparerFunc } from '../src_jq/common/rateTags'
 
@@ -236,7 +240,9 @@ export default {
     if (tags) {
       this.tagsLoad().then(() => {
         let splittedTags = tags.split(',')
-        this.selected = this.options.filter(o => splittedTags.indexOf(o.text) >= 0)
+        this.selected = this.options.filter(
+          (o) => splittedTags.indexOf(o.text) >= 0,
+        )
       })
     }
 
@@ -362,11 +368,15 @@ export default {
           getAllTabsByWindow(windowId).then((tabs) => {
             let date = new Date()
 
-            let sessionTag = 'Session ' + date.toLocaleString().replace(',', '')
+            let sessionTag = 'Session'
+            let timetag = date.toLocaleString().replace(',', '')
             this.newCheatSheet.tags.push(
-              reactive({ id: sessionTag, text: sessionTag }),
+              { id: hashCode(sessionTag), text: sessionTag },
             )
-            this.newCheatSheet.content = sessionTag
+            this.newCheatSheet.tags.push(
+              { id: hashCode(timetag), text: timetag },
+            )
+            // this.newCheatSheet.content = ''
             this.newCheatSheet.type = 'group'
 
             let i = 0
@@ -381,6 +391,9 @@ export default {
                 link: tab.url,
               }
             })
+
+            let sessionCheatSheets = [this.newCheatSheet].concat(this.sesstionTabs)
+            buildSternBrokkoTree(sessionCheatSheets, -1, sessionCheatSheets.length)
           })
           break
         case 'Tab':
@@ -436,7 +449,10 @@ export default {
       let markdown = ''
 
       if (tab.favIconUrl) {
-        markdown += '<img align="left" width="16 px" src="' + tab.favIconUrl + '" />&nbsp;'
+        markdown
+          += '<img align="left" width="16 px" src="'
+          + tab.favIconUrl
+          + '" />&nbsp;'
       }
       markdown += '[' + tab.title + '](' + tab.url + ')'
 
@@ -444,8 +460,16 @@ export default {
     },
     moveToTags(event) {
       if (event.event.ctrlKey) {
-        openTabs([{ url: '../cheatsheets/page.html?tags=' + event.tags.map(el => el.text).join(',') }])
-      } else { this.selected = event.tags }
+        openTabs([
+          {
+            url:
+              '../cheatsheets/page.html?tags='
+              + event.tags.map((el) => el.text).join(','),
+          },
+        ])
+      } else {
+        this.selected = event.tags
+      }
     },
     addCheatSheet() {
       let date = new Date().valueOf()
@@ -466,7 +490,7 @@ export default {
       switch (this.addMode) {
         case 'Group':
           cheatsheet.type = 'group'
-
+          buildSternBrokkoTree([cheatsheet], -1, 1)
           this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
@@ -478,6 +502,7 @@ export default {
           break
         case 'Cheat Sheet':
         case 'Tab':
+          buildSternBrokkoTree([cheatsheet], -1, 1)
           this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
@@ -498,6 +523,8 @@ export default {
           }
 
           tabsToSave.unshift(cheatsheet)
+
+          buildSternBrokkoTree(tabsToSave, -1, tabsToSave.length)
           this.smartotekaFabric
             .KBManager()
             .addCheatSheets(tabsToSave)
@@ -577,29 +604,30 @@ export default {
           })
       }
     },
-    dropCheatSheetsToGroup(event) {
-      if (event.cheatsheets.length === 0) {
+    dropCheatSheetsInGroup(event) {
+      const cheatsheets = event.cheatsheets
+      if (cheatsheets.length === 0) {
         return
       }
 
       let group = event.group
-      let tags = getGroupTags(group)
+      const array = group.items
+      // let tags = getGroupTags(group)
 
-      let isMove = event.event.dataTransfer.effectAllowed === 'move'
+      // let isMove = event.event.dataTransfer.effectAllowed === 'move'
 
-      let cheatsheets = event.cheatsheets.map((el) => unwrapCheatSheet(
-        el,
-        unique(isMove ? tags : tags.concat(el.tags), (ch) => ch.id),
-      ))
+      moveCheatSheets(array, event.to, cheatsheets)
 
       this.smartotekaFabric
         .KBManager()
         .updateCheatSheets(cheatsheets)
         .then(() => {
-          cheatsheets.forEach((el) => {
-            el.group = group
-            group.items.push(reactive(el))
+          cheatsheets.forEach((ch) => {
+            let index = group.items.findIndex(item => item.id === ch.id)
+            group.items[index].d = ch.d
+            group.items[index].n = ch.n
           })
+          group.items = reactive(sortSternBroko(group.items))
         })
     },
     google() {

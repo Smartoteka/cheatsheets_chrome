@@ -3,28 +3,42 @@ import {
 } from './rateTags'
 
 function sternBrokoComparer(a, b) {
-  let na = a.d + b.n; let nb = a.n + b.d
+  let na = a.d * b.n; let nb = a.n * b.d
 
-  return comparer(na, nb)
+  return comparer(nb, na)
 }
-export function getSternBrokoByPos(array, l, r) {
+
+export function getSterBrokko(array, pos) {
+  if (pos < 0) { return { n: 0, d: 1 } }
+
+  if (pos === array.length) { return { n: 1, d: 1 } }
+
+  return array[pos]
+}
+
+export function calcSternBrokoByArray(array, l, r) {
   if (r - l === 0 || r - l === 1 && array[r] || l + 1 === array.length) {
     // console.log('return ' + l + ' ' + r)
     return null
   }
-  let lv = l < 0 ? { n: 0, d: 1 } : array[l]
-  let rv = r === array.length ? { n: 1, d: 0 } : array[r]
-
-  let n = lv.n + rv.n
-  let d = lv.d + rv.d
+  let lv = getSterBrokko(array, l)
+  let rv = getSterBrokko(array, r)
 
   // console.log(JSON.stringify({
   //   l, r, n, d, p,
   // }))
+  return calcSternBroko(lv, rv)
+}
+
+export function calcSternBroko(lv, rv) {
+  let n = lv.n + rv.n
+  let d = lv.d + rv.d
+
   return { n: n, d: d }
 }
+
 export function buildSternBrokkoTree(array, l, r) {
-  let dn = getSternBrokoByPos(array, l, r)
+  let dn = calcSternBrokoByArray(array, l, r)
 
   if (!dn) { return }
 
@@ -178,13 +192,13 @@ export function setSearchHashs(cheatsheets, allTags) {
   let tagsMap = {}
 
   allTags.forEach(tag => {
-    tag.uid = hashCode(tag.id.toLowerCase())
+    tag.uid = hashCode(tag.text.toLowerCase())
 
     tagsMap[tag.id] = tag
   })
 
   cheatsheets.forEach(cheatsheet => {
-    cheatsheet.tags = cheatsheet.tags.map(tag => tagsMap[tag.id])
+    cheatsheet.tags = cheatsheet.tags.map(tag => tagsMap[tag.id]).filter(t => t)
 
     cheatsheet.orderedTags = tagsToOrderedHashs(cheatsheet.tags)
   })
@@ -255,16 +269,8 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
 
     id: parseInt((++id), 10),
     items:
-      cheatsheets
-        .filter(el => !el.inGroup)
-        .sort(
-          comparerCombine([
-            comparerFuncDesc(
-              ch => ch.type,
-            ),
-            sternBrokoComparer,
-          ]),
-        ),
+    sortSternBroko(cheatsheets
+      .filter(el => !el.inGroup)),
     commonTagsCount: 0,
     groups: [],
   }]
@@ -275,4 +281,34 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
   // groups = groups.filter(el => !el.inGroup && (el.items.length !== 0 || el.groups.length !== 0))
 
   return returnGroups
+}
+
+export function sortSternBroko(cheatsheets) {
+  return cheatsheets.sort(
+    comparerCombine([
+      // comparerFuncDesc(
+      //   ch => ch.type,
+      // ),
+      sternBrokoComparer,
+    ]),
+  )
+}
+
+export function moveCheatSheets(array, to, moved) {
+  let toPos = array.findIndex((el) => el.id === to.id)
+
+  if (toPos < 0) {
+    throw new Error('unexpected to in array')
+  }
+
+  let dn = getSterBrokko(array, toPos)
+  let rdn = getSterBrokko(array, toPos + 1)
+  dn = calcSternBroko(dn, rdn)
+
+  moved.forEach((movedItem) => {
+    movedItem.d = dn.d
+    movedItem.n = dn.n
+
+    dn = calcSternBroko(dn, rdn)
+  })
 }

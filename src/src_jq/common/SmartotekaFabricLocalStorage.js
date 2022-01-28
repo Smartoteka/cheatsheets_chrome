@@ -1,5 +1,8 @@
 import { unique, grapTags, unwrapCheatSheet } from './commonFunctions'
-import { setSearchHashs, hashCode, buildSternBrokkoTree } from './cheatSheetsManage'
+import {
+  setSearchHashs, hashCode, buildSternBrokkoTree, sortSternBroko,
+} from './cheatSheetsManage'
+import { comparerFunc } from './rateTags'
 
 class SmartotekaFabricLocalStorage {
   #getFromStorage(memberName, defaultValue) {
@@ -36,8 +39,22 @@ class SmartotekaFabricLocalStorage {
     return this.#getFromStorage('SpeedDeal', {})
   }
 
+  #validateTags(tags) {
+    tags.forEach(tag => {
+      if (!tag.text) { throw new Error('Empty tag!') }
+      if (!tag.id) { throw new Error('Not find id in tag ' + tag.text) }
+      if (!tag.uid || !parseInt(tag.uid, 10)) { throw new Error('Not find uid in tag ' + tag.text) }
+
+      if (tags.length !== unique(tags, tag => tag.uid).length) { throw new Error('not unique tags by uid!') }
+      if (tags.length !== unique(tags, tag => tag.text).length) { throw new Error('not unique tags by tags!') }
+    })
+  }
+
   #saveTags(tags) {
     let that = this
+
+    this.#validateTags(tags)
+
     return new Promise(
       r => chrome.storage.local.set(
         { Tags: unique(tags, el => el.id) },
@@ -55,6 +72,22 @@ class SmartotekaFabricLocalStorage {
 
   #saveCheatSheets(cheatsheets) {
     let that = this
+
+    cheatsheets.forEach(cheatsheet => {
+      if (!cheatsheet.id) { throw new Error('Not find id in cheatsheet') }
+
+      if (!cheatsheet.date) { throw new Error('Empty date! ' + cheatsheet.id) }
+
+      if (!cheatsheet.d) { throw new Error('Not find d in cheatsheet ' + cheatsheet.id) }
+      if (!cheatsheet.n) { throw new Error('Not find n in cheatsheet ' + cheatsheet.id) }
+      if (!cheatsheet.type) { throw new Error('Not find n in cheatsheet ' + cheatsheet.id) }
+
+      if (!cheatsheet.tags) { throw new Error('Not find tags in cheatsheet ' + cheatsheet.id) }
+
+      if (!cheatsheet.orderedTags) { throw new Error('Not find orderedTags in cheatsheet ' + cheatsheet.id) }
+      that.#validateTags(cheatsheet.tags)
+    })
+
     return new Promise(
       r => chrome.storage.local.set(
         { CheatSheets: cheatsheets },
@@ -94,8 +127,8 @@ class SmartotekaFabricLocalStorage {
             .then(([Tags, CheatSheets]) => {
               this.#downloadObjectAsJson(
                 {
-                  Tags,
-                  CheatSheets,
+                  Tags: Tags.sort(comparerFunc(el => el.text)),
+                  CheatSheets: sortSternBroko(CheatSheets),
                 },
                 fileName,
               )
@@ -155,6 +188,12 @@ class SmartotekaFabricLocalStorage {
         cheatsheets = cheatsheets.map((cheatsheet) => unwrapCheatSheet(cheatsheet, cheatsheet.tags))
         let allTags = grapTags(cheatsheets, json.Tags || [])
 
+        allTags.forEach(el => el.uid = hashCode(el.text))
+        allTags = unique(allTags, el => el.uid)
+        cheatsheets.forEach((ch) => {
+          ch.tags.forEach(el => el.uid = hashCode(el.text))
+          ch.tags = unique(ch.tags, el => el.uid)
+        })
         setSearchHashs(cheatsheets, allTags)
 
         buildSternBrokkoTree(cheatsheets, -1, cheatsheets.length)

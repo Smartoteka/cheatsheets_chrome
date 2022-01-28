@@ -111,10 +111,10 @@ export default {
       let strVal = ''
       if (Array.isArray(value)) {
         strVal = JSON.stringify(
-          value.map((el) => ({
+          unique(value.map((el) => ({
             id: typeof (el.id) === 'string' ? parseInt(el.id, 10) : el.id,
             text: el.text,
-          })),
+          })), el => el.id),
         )
       } else {
         strVal = JSON.stringify(value)

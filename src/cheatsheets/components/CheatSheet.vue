@@ -1,5 +1,8 @@
 <template>
   <div
+   @drop="onDrop($event)"
+      @dragleave="dragLeave($event)"
+      @dragover="dragOver($event)"
     :class="
       'cheatsheet ' +
       (cheatsheet.link ? 'link' : 'info') +
@@ -132,6 +135,8 @@ export default {
     'remove-cheatsheets',
     'selected-few-elements',
     'selected',
+    'drop-cheat-sheets-in-group',
+    'drop-session-tabs-to-group',
   ],
   components: {
     Select2,
@@ -275,7 +280,7 @@ export default {
       return menuItems
     },
     tags() {
-      this.updateEditTags()
+      this.updateEditTags(true)
 
       return this.cheatsheet.tags.filter(
         (t) => !(
@@ -300,6 +305,35 @@ export default {
     },
   },
   methods: {
+    dragOver(event) {
+      event.preventDefault()
+    },
+    dragLeave(event) {
+      event.preventDefault()
+      event.stopPropagation()
+    },
+    onDrop(event) {
+      const dataStr = event.dataTransfer.getData('data')
+      let data = JSON.parse(dataStr)
+
+      switch (data.type) {
+        case 'sessionTabs':
+          this.$emit('drop-session-tabs-to-group', {
+            event: event,
+            ids: data.ids,
+          })
+          break
+        case 'moveCheatSheets':
+          this.$emit('drop-cheat-sheets-in-group', {
+            event: event,
+            cheatsheets: data.cheatsheets,
+            to: this.cheatsheet,
+          })
+          break
+        default:
+          throw new Error('Unexpected type of drop ' + data.type)
+      }
+    },
     tagsLoad() {
       return this.smartotekaFabric
         .queriesProvider()
@@ -450,8 +484,10 @@ export default {
         )
       })
     },
-    updateEditTags() {
-      this.editTags = this.cheatsheet.tags.slice(0)
+    updateEditTags(concat) {
+      if (concat) {
+        this.editTags = unique(this.editTags.slice(0).concat(this.cheatsheet.tags), el => el.id)
+      } else { this.editTags = this.cheatsheet.tags.slice(0) }
     },
     toEditMode() {
       this.currentMode = 'edit'
