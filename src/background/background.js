@@ -8,6 +8,8 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
     currentPopupId = openedWindow.id
   }
 
+  let [displayInfo] = await chrome.system.display.getInfo()
+
   let create = (top) => chrome.windows.create(
     {
       url: chrome.runtime.getURL(url) + '?cmd=' + (isAddMode ? 'to-add' : 'clear'),
@@ -16,7 +18,7 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
       height: height,
       width: width,
       top: top,
-      left: screen.width - width,
+      left: displayInfo.bounds.width - width,
       // alwaysOnTop: true,
     },
     createWindowCallback,
@@ -48,7 +50,7 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
   value.windowId = activeTab?.windowId
   await storage.set(value)
 
-  await open(screen.height - height)
+  await open(displayInfo.bounds.height - height)
 }
 
 chrome.windows.onRemoved.addListener(
@@ -84,6 +86,6 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 })
 
-chrome.browserAction.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener((tab) => {
   openPopup(tab, false)
 })

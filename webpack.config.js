@@ -168,10 +168,6 @@ const config = {
     new MiniCssExtractPlugin({
       filename: '[name].css',
     }),
-    // ...( new ZipPlugin({
-    //   path: path.join(__dirname, 'dist'),
-    //   filename: `Q&E_${version}.zip`,
-    // })] : []),
   ],
 }
 
@@ -185,33 +181,25 @@ if (config.mode === 'production') {
   ])
 }
 
-// if (config.mode === 'development') {
-//   config.plugins = (config.plugins || []).concat([
-//     new WebextensionPlugin({
-//       vendor: 'chrome',
-//     }),
-//   ])
-// }
-
 module.exports = (env, argv) => {
   if (argv.mode === 'development') {
-    config.plugins.push(
-      new ExtensionReloader({
-        reloadPage: true,
-        port: 9592,
-        // manifest: resolve(__dirname, 'src', 'manifest.json'),
-        entries: {
-          // The entries used for the content/background scripts or extension pages
-          background: 'background/background',
-          extensionPage: [
-            'popup/popup',
-            'cheatsheets/script',
-            'login/script',
-            'src_jq/settings/settings',
-          ],
-        },
-      }),
-    )
+    // config.plugins.push(
+    //   new ExtensionReloader({
+    //     reloadPage: true,
+    //     port: 9592,
+    //     // manifest: resolve(__dirname, 'src', 'manifest.json'),
+    //     entries: {
+    //       // The entries used for the content/background scripts or extension pages
+    //       background: 'background/background',
+    //       extensionPage: [
+    //         'popup/popup',
+    //         'cheatsheets/script',
+    //         'login/script',
+    //         'src_jq/settings/settings',
+    //       ],
+    //     },
+    //   }),
+    // )
   }
   return config
 }

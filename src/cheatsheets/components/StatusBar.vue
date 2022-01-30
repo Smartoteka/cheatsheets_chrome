@@ -14,15 +14,15 @@ export default {
     }
   },
   mounted() {
-    let today = new Date().toISOString().slice(0, 10)
+    // let today = new Date().toISOString().slice(0, 10)
 
-    storage.get('check-update').then((checkUpdate) => {
-      if (checkUpdate !== today) {
-        storage.get('app-uuid').then((uuid) => {
-          this.checkUpdate(uuid, today)
-        })
-      }
-    })
+    // storage.get('check-update').then((checkUpdate) => {
+    //   if (checkUpdate !== today) {
+    //     storage.get('app-uuid').then((uuid) => {
+    //       this.checkUpdate(uuid, today)
+    //     })
+    //   }
+    // })
   },
   computed: {},
   methods: {

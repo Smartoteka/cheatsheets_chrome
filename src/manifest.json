@@ -2,14 +2,14 @@
   "name": "Smartoteka",
   "description": "Your own knowledge base",
   "version": "1.0",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "author": "Tatarkov M",
   "icons": {
     "48": "images/smart_48.png",
     "128": "images/smart_128.png"
   },
   "background": {
-    "page": "background/background.html"
+    "service_worker": "background/background.js"
   },
   "permissions": [
     "storage",
@@ -17,6 +17,9 @@
     "tabs",
     "activeTab",
     "commands",
+    "system.display"
+  ],
+  "host_permissions": [
     "https://localhost:44383/*",
     "https://www.api.smartoteka.ru/*"
   ],
@@ -36,7 +39,7 @@
       "action": {}
     }
   },
-  "browser_action": {
+  "action": {
     "default_title": "Smartoteka"
   }
 }
