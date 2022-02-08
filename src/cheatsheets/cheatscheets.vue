@@ -230,6 +230,7 @@ export default {
     }
   },
   beforeMount() {
+    let vm = this
     let params = new URLSearchParams(window.location.search)
 
     if (params.get('cmd') === 'to-add') {
