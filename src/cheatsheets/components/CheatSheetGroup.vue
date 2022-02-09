@@ -232,7 +232,7 @@ export default {
       let tabs = this.getTabs()
       openTabs(tabs)
     },
-    openLinksInNewWindow() {
+    openTabsInNewWindow() {
       let tabs = this.getTabs()
       openTabsInNewWindow(tabs)
     },
