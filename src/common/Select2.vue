@@ -15,6 +15,7 @@ import { unique, throttle } from '../src_jq/common/commonFunctions'
 import {
   select2UpdateTags,
   generateAdditionalTagsFunction,
+  replaceOptions,
 } from '../src_jq/common/mulitselectTagsHandlers'
 
 import registerRestrictionMap from '../src_jq/common/restrictionMap'
@@ -68,18 +69,7 @@ export default {
       const selectList = this.selectList()
       let modelValue = selectList.val()
 
-      selectList.empty()
-
-      options.forEach((val) => {
-        let newOption = new Option(
-          val.text,
-          val.id,
-          false,
-          modelValue.findIndex((mv) => mv.id === val.id) >= 0,
-        )
-        selectList.append(newOption)
-      })
-      // this.selectList().val(modelValue).trigger('change')
+      replaceOptions(selectList, options, modelValue)
     },
   },
   destroyed: function () {

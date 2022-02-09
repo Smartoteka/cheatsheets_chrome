@@ -92,7 +92,7 @@
             v-for="v in selectVariants"
             :key="v.title"
             @click="v.handler()"
-             :class="
+            :class="
               'pointer ' + (v.title == showMode ? 'selected' : 'unselected')
             "
           >
@@ -107,6 +107,7 @@
             No results found
           </div>
           <CheatSheetGroup
+            ref="cheatSheetGroup"
             v-for="group in groups"
             :key="group.id"
             :group="group"
@@ -230,6 +231,7 @@ export default {
     }
   },
   beforeMount() {
+    let vm = this
     let params = new URLSearchParams(window.location.search)
 
     if (params.get('cmd') === 'to-add') {
@@ -335,6 +337,31 @@ export default {
       if (this.cheatsheets.length === 0) {
         return []
       }
+
+      if (this.selected.length > 0 && this.selected[this.selected.length - 1].text.startsWith('+')) {
+        let cmd = this.selected.pop().text
+
+        let vm = this
+        this.$nextTick(() => {
+          switch (cmd) {
+            case '+go':
+              vm.$refs.cheatSheetGroup.openTabs()
+              break
+            case '+c':
+              vm.$refs.cheatSheetGroup.closeTabsByUrlIfOpen()
+              break
+            case '+co':
+              vm.$refs.cheatSheetGroup.closeOthers()
+              break
+            case '+nw':
+              vm.$refs.cheatSheetGroup.openTabsInNewWindow()
+              break
+            default:
+              throw new Error('Unexpected command ' + cmd)
+          }
+        })
+      }
+
       let tags = this.selected.map((el) => el.text).join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
@@ -362,12 +389,16 @@ export default {
           if (this.newCheatSheet) {
             this.newCheatSheet.link = ''
             this.newCheatSheet.type = 'cheatsheet'
-            this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
+            this.newCheatSheet.tags = this.newCheatSheet.tags.filter(
+              (el) => !el.sessionTag,
+            )
           }
           break
         case 'Group':
           this.newCheatSheet.type = 'group'
-          this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
+          this.newCheatSheet.tags = this.newCheatSheet.tags.filter(
+            (el) => !el.sessionTag,
+          )
           break
 
         case 'Session':
@@ -377,16 +408,20 @@ export default {
 
             let sessionTag = 'Session'
             let timetag = date.toLocaleString().replace(',', '')
-            this.newCheatSheet.tags.push(reactive({
-              id: hashCode(sessionTag),
-              text: sessionTag,
-              sessionTag: true,
-            }))
-            this.newCheatSheet.tags.push(reactive({
-              id: hashCode(timetag),
-              text: timetag,
-              sessionTag: true,
-            }))
+            this.newCheatSheet.tags.push(
+              reactive({
+                id: hashCode(sessionTag),
+                text: sessionTag,
+                sessionTag: true,
+              }),
+            )
+            this.newCheatSheet.tags.push(
+              reactive({
+                id: hashCode(timetag),
+                text: timetag,
+                sessionTag: true,
+              }),
+            )
             // this.newCheatSheet.content = ''
             this.newCheatSheet.type = 'group'
 

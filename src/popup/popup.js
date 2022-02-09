@@ -26,7 +26,7 @@ app.component(VueFeather.name, VueFeather)
 
 app.mount('#app')
 
-storage.get('app-uuid')
-  .then((value) => {
-    if (!value) { redirectCurrentTab('/login/page.html') }
-  })
+// storage.get('app-uuid')
+//   .then((value) => {
+//     if (!value) { redirectCurrentTab('/login/page.html') }
+//   })
