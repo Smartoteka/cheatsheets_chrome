@@ -194,11 +194,14 @@ export function setSearchHashs(cheatsheets, allTags) {
   allTags.forEach(tag => {
     tag.uid = hashCode(tag.text.toLowerCase())
 
-    tagsMap[tag.id] = tag
+    tagsMap[tag.uid] = tag
   })
 
   cheatsheets.forEach(cheatsheet => {
-    cheatsheet.tags = cheatsheet.tags.map(tag => tagsMap[tag.id]).filter(t => t)
+    cheatsheet.tags = cheatsheet.tags.map(tag => {
+      tag.uid = hashCode(tag.text.toLowerCase())
+      return tagsMap[tag.uid]
+    }).filter(t => t)
 
     cheatsheet.orderedTags = tagsToOrderedHashs(cheatsheet.tags)
   })

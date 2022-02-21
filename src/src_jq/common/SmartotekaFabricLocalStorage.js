@@ -213,7 +213,7 @@ class SmartotekaFabricLocalStorage {
 
           parent.#getTags()
             .then(tags => {
-              tags = [...tags, ...newTags.map(el => ({ id: el.id, text: el.text, uid: hashCode(el.id.toLowerCase()) }))]
+              tags = [...tags, ...newTags.map(el => ({ id: el.id, text: el.text, uid: hashCode(el.text.toLowerCase()) }))]
               parent.#saveTags(tags)
 
               resolve()
