@@ -146,6 +146,7 @@ import {
   unwrapCheatSheet,
   getGroupTags,
   openTabs,
+  standartHandle,
 } from '../src_jq/common/commonFunctions'
 import {
   cheatsheetsGroupByPreparedGroups,
@@ -543,26 +544,26 @@ export default {
         case 'Group':
           cheatsheet.type = 'group'
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
         case 'Cheat Sheet':
         case 'Tab':
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
 
         case 'Session':
@@ -577,14 +578,14 @@ export default {
           tabsToSave.unshift(cheatsheet)
 
           buildSternBrokkoTree(tabsToSave, -1, tabsToSave.length)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheets(tabsToSave)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
         default:
           throw new Error('Unexpected addMode' + this.addMode)
@@ -609,14 +610,14 @@ export default {
         })
     },
     updateCheatSheet(event) {
-      this.smartotekaFabric
+      standartHandle(this.smartotekaFabric
         .KBManager()
         .updateCheatSheets([event.cheatsheet])
         .then(() => {
           if (event.tagsIsModified) {
             this.refresh()
           }
-        })
+        }))
     },
     removeCheatSheets(event) {
       if (confirm('Are you sure?')) {

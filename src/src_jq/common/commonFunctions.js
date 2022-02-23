@@ -213,6 +213,27 @@ export function getSmartotekaFabric() {
   // new SmartotekaFabricDGraph("https://blue-surf-390018.us-east-1.aws.cloud.dgraph.io/")
 }
 
+export function standartHandle(promise) {
+  promise.then(() => {
+    changeIcon('green')
+    setTimeout(() => changeIcon('blue'), 1000)
+  })
+    .catch(error => {
+      console.log(error)
+      changeIcon('red')
+    })
+}
+
+export function changeIcon(color) {
+  let link = document.querySelector("link[rel~='icon']")
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'icon'
+    document.getElementsByTagName('head')[0].appendChild(link)
+  }
+  link.href = '/images/icon_' + color + '_64.png'
+}
+
 export function unwrapCheatSheet(reactive, tags) {
   let result = {
     id: reactive.id,
