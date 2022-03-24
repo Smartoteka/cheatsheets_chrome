@@ -158,6 +158,14 @@ import {
 } from '../src_jq/common/cheatSheetsManage'
 import { comparerFunc } from '../src_jq/common/rateTags'
 
+const elasticlunr = require('elasticlunr')
+
+require('../lib/lunr.stemmer.support.js')(elasticlunr)
+require('../lib/lunr.ru.js')(elasticlunr)
+require('../lib/lunr.multi.js')(elasticlunr)
+
+const json = require('big-json')
+
 window.$ = jQuery
 let $ = jQuery
 
@@ -363,7 +371,8 @@ export default {
         })
       }
 
-      let tags = this.selected.map((el) => el.text).join(',')
+      let textTags = this.selected.map((el) => el.text)
+      let tags = textTags.join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
       }
@@ -372,10 +381,35 @@ export default {
         .map((el) => parseInt(el.id, 10))
         .sort(comparerFunc((el) => el))
       console.log('searchResults ' + tags)
-      return this.cheatsheets.filter(
-        (cheatsheet) => !cheatsheet.orderedTags
-          || findTagsInOrderedTags(findTags, cheatsheet.orderedTags),
-      )
+
+      let cheatsheetIdToScoreMap = {}
+      this.index.search(
+        textTags,
+        {
+          fields: {
+            joinedTags: { boost: 2 },
+            content: { boost: 1 },
+          },
+        },
+      ).forEach(el => {
+        cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
+      })
+
+      return this.cheatsheets.filter(el => {
+        let score = cheatsheetIdToScoreMap[el.id]
+
+        if (!score) {
+          return false
+        }
+
+        el.score = score
+        return true
+      }).sort(comparerFunc((el) => el.score))
+
+      // return this.cheatsheets.filter(
+      //   (cheatsheet) => !cheatsheet.orderedTags
+      //     || findTagsInOrderedTags(findTags, cheatsheet.orderedTags),
+      // )
     },
     smartotekaFabric() {
       return getSmartotekaFabric()
@@ -607,6 +641,21 @@ export default {
         .getCheatSheets()
         .then((cheatsheets) => {
           this.cheatsheets = reactive(cheatsheets)
+
+          this.index = elasticlunr(function () {
+            // this.DocumentStore(false)
+
+            this.use(elasticlunr.multiLanguage('en', 'ru'))
+
+            this.addField('content')
+            this.addField('joinedTags')
+
+            this.setRef('id')
+          })
+          cheatsheets.forEach((cheatsheet) => {
+            cheatsheet.joinedTags = cheatsheet.tags.map(el => el.text).join(', ')
+            this.index.addDoc(cheatsheet)
+          })
         })
     },
     updateCheatSheet(event) {
