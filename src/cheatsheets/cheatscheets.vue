@@ -92,7 +92,7 @@
             v-for="v in selectVariants"
             :key="v.title"
             @click="v.handler()"
-             :class="
+            :class="
               'pointer ' + (v.title == showMode ? 'selected' : 'unselected')
             "
           >
@@ -107,6 +107,7 @@
             No results found
           </div>
           <CheatSheetGroup
+            ref="cheatSheetGroup"
             v-for="group in groups"
             :key="group.id"
             :group="group"
@@ -145,6 +146,7 @@ import {
   unwrapCheatSheet,
   getGroupTags,
   openTabs,
+  standartHandle,
 } from '../src_jq/common/commonFunctions'
 import {
   cheatsheetsGroupByPreparedGroups,
@@ -155,6 +157,14 @@ import {
   buildSternBrokkoTree,
 } from '../src_jq/common/cheatSheetsManage'
 import { comparerFunc } from '../src_jq/common/rateTags'
+
+const elasticlunr = require('elasticlunr')
+
+require('../lib/lunr.stemmer.support.js')(elasticlunr)
+require('../lib/lunr.ru.js')(elasticlunr)
+require('../lib/lunr.multi.js')(elasticlunr)
+
+const json = require('big-json')
 
 window.$ = jQuery
 let $ = jQuery
@@ -336,7 +346,33 @@ export default {
       if (this.cheatsheets.length === 0) {
         return []
       }
-      let tags = this.selected.map((el) => el.text).join(',')
+
+      if (this.selected.length > 0 && this.selected[this.selected.length - 1].text.startsWith('+')) {
+        let cmd = this.selected.pop().text
+
+        let vm = this
+        this.$nextTick(() => {
+          switch (cmd) {
+            case '+go':
+              vm.$refs.cheatSheetGroup.openTabs()
+              break
+            case '+c':
+              vm.$refs.cheatSheetGroup.closeTabsByUrlIfOpen()
+              break
+            case '+co':
+              vm.$refs.cheatSheetGroup.closeOthers()
+              break
+            case '+nw':
+              vm.$refs.cheatSheetGroup.openTabsInNewWindow()
+              break
+            default:
+              throw new Error('Unexpected command ' + cmd)
+          }
+        })
+      }
+
+      let textTags = this.selected.map((el) => el.text)
+      let tags = textTags.join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
       }
@@ -345,10 +381,35 @@ export default {
         .map((el) => parseInt(el.id, 10))
         .sort(comparerFunc((el) => el))
       console.log('searchResults ' + tags)
-      return this.cheatsheets.filter(
-        (cheatsheet) => !cheatsheet.orderedTags
-          || findTagsInOrderedTags(findTags, cheatsheet.orderedTags),
-      )
+
+      let cheatsheetIdToScoreMap = {}
+      this.index.search(
+        textTags,
+        {
+          fields: {
+            joinedTags: { boost: 2 },
+            content: { boost: 1 },
+          },
+        },
+      ).forEach(el => {
+        cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
+      })
+
+      return this.cheatsheets.filter(el => {
+        let score = cheatsheetIdToScoreMap[el.id]
+
+        if (!score) {
+          return false
+        }
+
+        el.score = score
+        return true
+      }).sort(comparerFunc((el) => el.score))
+
+      // return this.cheatsheets.filter(
+      //   (cheatsheet) => !cheatsheet.orderedTags
+      //     || findTagsInOrderedTags(findTags, cheatsheet.orderedTags),
+      // )
     },
     smartotekaFabric() {
       return getSmartotekaFabric()
@@ -363,12 +424,16 @@ export default {
           if (this.newCheatSheet) {
             this.newCheatSheet.link = ''
             this.newCheatSheet.type = 'cheatsheet'
-            this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
+            this.newCheatSheet.tags = this.newCheatSheet.tags.filter(
+              (el) => !el.sessionTag,
+            )
           }
           break
         case 'Group':
           this.newCheatSheet.type = 'group'
-          this.newCheatSheet.tags = this.newCheatSheet.tags.filter(el => !el.sessionTag)
+          this.newCheatSheet.tags = this.newCheatSheet.tags.filter(
+            (el) => !el.sessionTag,
+          )
           break
 
         case 'Session':
@@ -378,16 +443,20 @@ export default {
 
             let sessionTag = 'Session'
             let timetag = date.toLocaleString().replace(',', '')
-            this.newCheatSheet.tags.push(reactive({
-              id: hashCode(sessionTag),
-              text: sessionTag,
-              sessionTag: true,
-            }))
-            this.newCheatSheet.tags.push(reactive({
-              id: hashCode(timetag),
-              text: timetag,
-              sessionTag: true,
-            }))
+            this.newCheatSheet.tags.push(
+              reactive({
+                id: hashCode(sessionTag),
+                text: sessionTag,
+                sessionTag: true,
+              }),
+            )
+            this.newCheatSheet.tags.push(
+              reactive({
+                id: hashCode(timetag),
+                text: timetag,
+                sessionTag: true,
+              }),
+            )
             // this.newCheatSheet.content = ''
             this.newCheatSheet.type = 'group'
 
@@ -509,26 +578,26 @@ export default {
         case 'Group':
           cheatsheet.type = 'group'
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
         case 'Cheat Sheet':
         case 'Tab':
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheet(cheatsheet)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
 
         case 'Session':
@@ -543,14 +612,14 @@ export default {
           tabsToSave.unshift(cheatsheet)
 
           buildSternBrokkoTree(tabsToSave, -1, tabsToSave.length)
-          this.smartotekaFabric
+          standartHandle(this.smartotekaFabric
             .KBManager()
             .addCheatSheets(tabsToSave)
             .then(() => {
               this.resetEditState()
 
               this.refresh()
-            })
+            }))
           break
         default:
           throw new Error('Unexpected addMode' + this.addMode)
@@ -572,17 +641,32 @@ export default {
         .getCheatSheets()
         .then((cheatsheets) => {
           this.cheatsheets = reactive(cheatsheets)
+
+          this.index = elasticlunr(function () {
+            // this.DocumentStore(false)
+
+            this.use(elasticlunr.multiLanguage('en', 'ru'))
+
+            this.addField('content')
+            this.addField('joinedTags')
+
+            this.setRef('id')
+          })
+          cheatsheets.forEach((cheatsheet) => {
+            cheatsheet.joinedTags = cheatsheet.tags.map(el => el.text).join(', ')
+            this.index.addDoc(cheatsheet)
+          })
         })
     },
     updateCheatSheet(event) {
-      this.smartotekaFabric
+      standartHandle(this.smartotekaFabric
         .KBManager()
         .updateCheatSheets([event.cheatsheet])
         .then(() => {
           if (event.tagsIsModified) {
             this.refresh()
           }
-        })
+        }))
     },
     removeCheatSheets(event) {
       if (confirm('Are you sure?')) {

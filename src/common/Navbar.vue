@@ -1,6 +1,6 @@
 <template>
   <nav class="nav">
-    <a v-for="l in links" :key="l.url" :href="l.url"
+    <a v-for="l in links" :key="l.url" :href="l.url()"
       ><img
         class="ctrl-img"
         :src="'/images/' + l.icon"

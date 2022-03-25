@@ -163,36 +163,25 @@ export default {
           {
             text: 'Open in current window',
             handler: () => {
-              let tabs = that.getTabs()
-              openTabs(tabs)
+              that.openTabs()
             },
           },
           {
             text: 'Open in new window',
             handler: () => {
-              let tabs = that.getTabs()
-              openTabsInNewWindow(tabs)
+              that.openTabsInNewWindow()
             },
           },
           {
             text: 'Close all and dublicates',
             handler: function () {
-              let tabs = that.getTabs()
-              closeTabsByUrlIfOpen(tabs)
+              that.closeTabsByUrlIfOpen()
             },
           },
           {
             text: 'Close others',
             handler: function () {
-              let currentTabs = that.getTabs()
-
-              getAllTabs().then((tabs) => {
-                let otherTabs = tabs.filter(
-                  (tab) => currentTabs.findIndex((st) => st.url === tab.url) === -1,
-                )
-
-                closeTabs(otherTabs)
-              })
+              that.closeOthers()
             },
           },
         ])
@@ -239,6 +228,29 @@ export default {
     },
   },
   methods: {
+    openTabs() {
+      let tabs = this.getTabs()
+      openTabs(tabs)
+    },
+    openTabsInNewWindow() {
+      let tabs = this.getTabs()
+      openTabsInNewWindow(tabs)
+    },
+    closeTabsByUrlIfOpen() {
+      let tabs = this.getTabs()
+      closeTabsByUrlIfOpen(tabs)
+    },
+    closeOthers() {
+      let currentTabs = this.getTabs()
+
+      getAllTabs().then((tabs) => {
+        let otherTabs = tabs.filter(
+          (tab) => currentTabs.findIndex((st) => st.url === tab.url) === -1,
+        )
+
+        closeTabs(otherTabs)
+      })
+    },
     startCheatSheetDrag(event, item) {
       let cheatsheets = item.selected
         ? this.group.items

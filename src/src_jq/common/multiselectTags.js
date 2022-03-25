@@ -1,5 +1,6 @@
 import Fuse from '../libraries/fuse'
 import { hashCode } from './cheatSheetsManage'
+import { replaceOptions } from './mulitselectTagsHandlers'
 
 export default function createMultiselectTags(selector, tags, helpTags, placeholder) {
   tags = tags.filter(el => el.id)
@@ -30,10 +31,75 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
     data: tags,
     templateSelection: elementRender,
     templateResult: elementRender,
+    tokenizer: function (params, options, callback) {
+      if (params.term.length === 0 && select2List.prevOptions != null) {
+        let selected = $(selector).select2('data')
+        replaceOptions(select2List, select2List.prevOptions, selected)
+
+        select2List.prevOptions = null
+      }
+      if (params.term.length > 0 && params.term === '+') {
+        let cmds = ['go', 'c', 'nw', 'co'].map(el => {
+          let text = '+' + el
+          return {
+            id: hashCode(text),
+            text: text,
+          }
+        })
+
+        let dataAdapter = $(selector).data('select2').dataAdapter
+        dataAdapter.query({ _type: 'all' }, (currentOptions) => {
+          select2List.prevOptions = currentOptions.results
+        })
+
+        let selected = $(selector).select2('data')
+        replaceOptions(select2List, selected.concat(cmds), selected)
+      }
+      let separators = options.get('tokenSeparators') || []
+      let term = params.term
+      let i = 0
+
+      let createTag = this.createTag || function (params) {
+        return {
+          id: params.term,
+          text: params.term,
+        }
+      }
+
+      while (i < term.length) {
+        let termChar = term[i]
+
+        if (separators.indexOf(termChar) === -1) {
+          i++
+          continue
+        }
+
+        let part = term.substr(0, i)
+        let partParams = $.extend({}, params, {
+          term: part,
+          tokenize: true,
+        })
+        let data = createTag(partParams)
+
+        if (data == null) {
+          i++
+          continue
+        }
+
+        callback(data) // Reset the term to not include the tokenized portion
+
+        term = term.substr(i + 1) || ''
+        i = 0
+      }
+
+      return {
+        term: term,
+      }
+    },
     createTag: function (params) {
       let term = $.trim(params.term)
 
-      if (term === '') {
+      if (term === '' || term.startsWith('+')) {
         return null
       }
 
@@ -86,6 +152,7 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
     //   data.push(tag)
     // },
     matcher: (term, text) => {
+      if (term._type === 'all') return text
       if (!term.term) {
         let tags = $(selector).select2('data').map(el => el.text)
 

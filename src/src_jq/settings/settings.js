@@ -1,4 +1,4 @@
-import { getSmartotekaFabric } from '../common/commonFunctions'
+import { getSmartotekaFabric, standartHandle } from '../common/commonFunctions'
 
 let smartotekaFabric = getSmartotekaFabric()
 
@@ -32,7 +32,7 @@ $(function () {
         let str = event.target.result
         let json = JSON.parse(str)
 
-        smartotekaFabric.KBManager().importSpeedDeal(json)
+        standartHandle(smartotekaFabric.KBManager().importSpeedDeal(json))
       }
 
       // Read the file
@@ -42,9 +42,11 @@ $(function () {
 
   function registerSmartotekaHandlers() {
     $('#export-all-btn').click((e) => {
-      smartotekaFabric
-        .queriesProvider()
-        .export(new Date().toJSON().replaceAll(':', '_'))
+      standartHandle(
+        smartotekaFabric
+          .queriesProvider()
+          .export(new Date().toJSON().replaceAll(':', '_')),
+      )
     })
 
     let form = document.querySelector('#import-form')

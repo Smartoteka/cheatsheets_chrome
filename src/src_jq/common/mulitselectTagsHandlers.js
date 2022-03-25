@@ -67,6 +67,20 @@ export function select2ClearTags(selector) {
   select2.val(null).trigger('change')
 }
 
+export function replaceOptions(selectList, options, selected) {
+  selectList.empty()
+
+  options.forEach((val) => {
+    let newOption = new Option(
+      val.text,
+      val.id,
+      false,
+      selected.findIndex((mv) => mv.id === val.id) >= 0,
+    )
+    selectList.append(newOption)
+  })
+}
+
 $('#clear-filter-tags-btn').click(_ => {
   select2ClearTags('#filter-tags')
 })
