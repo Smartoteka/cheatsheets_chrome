@@ -1,11 +1,11 @@
 import storage from '../utils/storage'
 import { getActiveTab } from '../src_jq/common/commonFunctions'
 
-let currentPopupId = null
-
 async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
   let createWindowCallback = async (openedWindow) => {
-    currentPopupId = openedWindow.id
+    let value = {}
+    value[chrome.runtime.id] = openedWindow.id
+    await storage.set(value)
   }
 
   let [displayInfo] = await chrome.system.display.getInfo()
@@ -23,6 +23,8 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
     },
     createWindowCallback,
   )
+
+  let currentPopupId = await storage.get(chrome.runtime.id)
 
   let open = async (top) => {
     if (currentPopupId) {
@@ -55,6 +57,7 @@ async function getOrCreatePopup(activeTab, url, width, height, isAddMode) {
 
 chrome.windows.onRemoved.addListener(
   async (windowId) => {
+    let currentPopupId = await storage.get(chrome.runtime.id)
     if (windowId === currentPopupId) {
       currentPopupId = null
     }

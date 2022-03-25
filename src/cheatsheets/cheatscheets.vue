@@ -156,7 +156,7 @@ import {
   hashCode,
   buildSternBrokkoTree,
 } from '../src_jq/common/cheatSheetsManage'
-import { comparerFunc } from '../src_jq/common/rateTags'
+import { comparerFunc, comparerFuncDesc } from '../src_jq/common/rateTags'
 
 const elasticlunr = require('elasticlunr')
 
@@ -387,15 +387,21 @@ export default {
         textTags,
         {
           fields: {
-            joinedTags: { boost: 2 },
-            content: { boost: 1 },
+            joinedTags: { boost: 1 },
+            content: { boost: 2 },
           },
         },
       ).forEach(el => {
         cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
       })
 
-      return this.cheatsheets.filter(el => {
+      let cheatsheets = this.cheatsheets
+
+      if (textTags.indexOf('hideForMe') < 0) {
+        cheatsheets = cheatsheets.filter(el => el.tags.findIndex(tag => tag.text === 'hideForMe') < 0)
+      }
+
+      let searchResult = cheatsheets.filter(el => {
         let score = cheatsheetIdToScoreMap[el.id]
 
         if (!score) {
@@ -404,7 +410,8 @@ export default {
 
         el.score = score
         return true
-      }).sort(comparerFunc((el) => el.score))
+      }).sort(comparerFuncDesc((el) => el.score))
+      return searchResult
 
       // return this.cheatsheets.filter(
       //   (cheatsheet) => !cheatsheet.orderedTags

@@ -272,8 +272,9 @@ export function cheatsheetsGroupByPreparedGroups(cheatsheets, tagsCount) {
 
     id: parseInt((++id), 10),
     items:
-    sortSternBroko(cheatsheets
-      .filter(el => !el.inGroup)),
+    // sortSternBroko(
+      cheatsheets
+        .filter(el => !el.inGroup),
     commonTagsCount: 0,
     groups: [],
   }]
