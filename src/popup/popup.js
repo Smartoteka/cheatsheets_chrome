@@ -5,8 +5,6 @@ import 'element-plus/dist/index.css'
 
 import { createApp } from 'vue'
 
-import ElementPlus from 'element-plus'
-import VueFeather from 'vue-feather'
 import ContextMenu from '../common/vue3-context-menu/vue3-context-menu.umd.min'
 import storage from '../utils/storage'
 import { redirectCurrentTab, truncate } from '../src_jq/common/commonFunctions'
@@ -20,9 +18,7 @@ app.config.globalProperties.$filters = {
   truncate: truncate,
 }
 
-app.use(ElementPlus)
 app.use(ContextMenu)
-app.component(VueFeather.name, VueFeather)
 
 app.mount('#app')
 

@@ -129,7 +129,6 @@
 
 <script>
 import { reactive } from 'vue'
-import jQuery from 'jquery'
 import storage from '../utils/storage'
 import Navbar from '../common/Navbar'
 
@@ -163,11 +162,6 @@ const elasticlunr = require('elasticlunr')
 require('../lib/lunr.stemmer.support.js')(elasticlunr)
 require('../lib/lunr.ru.js')(elasticlunr)
 require('../lib/lunr.multi.js')(elasticlunr)
-
-const json = require('big-json')
-
-window.$ = jQuery
-let $ = jQuery
 
 export default {
   name: 'App',
@@ -276,14 +270,14 @@ export default {
         const activeElement = document.activeElement
 
         if (e.code === 'Escape') {
-          setTimeout(() => $(activeElement).blur())
+          setTimeout(() => activeElement.blur())
           return
         }
 
         if (
           activeElement.type === 'textarea'
           || activeElement.type === 'text'
-          || $(activeElement).closest('.toastui-editor').length > 0
+          || activeElement.closest('.toastui-editor').length > 0
         ) {
           return
         }
@@ -291,7 +285,7 @@ export default {
         switch (e.key) {
           case 'f':
             setTimeout(
-              () => $('search .select2-search__field').first().focus(),
+              () => document.querySelector('search .select2-search__field').focus(),
               0,
             )
             break
@@ -325,12 +319,12 @@ export default {
       }
 
       if (request === 'clear') {
-        setTimeout(() => $('search .select2-search__field').focus(), 5)
+        setTimeout(() => document.querySelector('search .select2-search__field').focus(), 5)
       }
       sendResponse('success!')
     })
 
-    setTimeout(() => $('search .select2-search__field').focus(), 5)
+    setTimeout(() => document.querySelector('search .select2-search__field').focus(), 5)
   },
   computed: {
     groups() {

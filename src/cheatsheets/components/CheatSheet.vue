@@ -108,7 +108,6 @@
 <script>
 import '@toast-ui/editor/dist/toastui-editor.css' // Editor's Style
 
-import $ from 'jquery'
 import { takeWhile } from 'lodash'
 import Viewer from './Viewer'
 import Editor from './Editor'
@@ -124,8 +123,6 @@ import {
   getSmartotekaFabric,
 } from '../../src_jq/common/commonFunctions'
 import Menu from './menu'
-
-window.$ = $
 
 export default {
   name: 'CheatSheet',
@@ -410,80 +407,87 @@ export default {
     addButtonsToCodeBlocks() {
       let vm = this
 
-      $('code .copy', this.$el).remove()
-      let codeEls = $('code', this.$el)
+      const toRemove = this.$el.querySelector('code .copy')
+      if (toRemove) { toRemove.parentNode.removeChild(toRemove) }
+      let codeEls = this.$el.querySelectorAll('code')
 
-      codeEls.append(
-        '<img class="copy" style="display:none" src="/images/copy.svg" data-v-2d0b1742="">',
-      )
-      codeEls.css('position', 'relative')
-
-      codeEls.on('mouseleave', function () {
-        let that = this
-
-        let hideWithTimeout = () => {
-          if ($('img', that).hasClass('focus')) {
-            setTimeout(hideWithTimeout, 200)
-          } else {
-            $('img', that).hide()
-          }
-        }
-
-        setTimeout(hideWithTimeout, 200)
-      })
-
-      codeEls.on('contextmenu', function (e) {
-        if (e.originalEvent.handle) {
-          return
-        }
-        e.preventDefault()
-
-        let items = []
-        items.push({
-          label: 'Copy',
-          onClick: () => {
-            let text = $(e.target).closest('.toastui-editor-contents').text()
-            navigator.clipboard.writeText(text)
-          },
-        })
-
-        vm.$contextmenu({
-          x: e.pageX,
-          y: e.pageY,
-          items: items,
-        })
-
-        e.originalEvent.handle = true
-      })
-
-      codeEls.on('mouseenter', function () {
-        $('img', this).show()
-      })
-
-      $('img.copy', codeEls).on('mouseleave', function (e) {
-        $(this).removeClass('focus')
-      })
-      $('img.copy', codeEls).on('mouseenter', function (e) {
-        $(this).addClass('focus')
-      })
-      $('img.copy', codeEls).on('click', function (e) {
-        e.stopPropagation()
-
-        $(this).css({ 'background-color': '#bbfdc6' })
-        let text = $(this).parent().text()
-
-        if (!navigator.clipboard) {
-          fallbackCopyTextToClipboard(text)
-          return
-        }
-        navigator.clipboard.writeText(text).then(
-          function () {
-            console.log('Async: Copying to clipboard was successful!')
-          },
-          function (err) {
-            console.error('Async: Could not copy text: ', err)
-          },
+      codeEls.forEach(codeEl => {
+        codeEl.innerHTML += (
+          '<img class="copy" style="display:none" src="/images/copy.svg" data-v-2d0b1742="">'
         )
+        codeEl.style.position = 'relative'
+
+        codeEl.addEventListener('mouseleave', function () {
+          let that = this
+
+          let hideWithTimeout = () => {
+            if (that.querySelector('img').classList.contains('focus')) {
+              setTimeout(hideWithTimeout, 200)
+            } else {
+              that.querySelector('img').style.display = 'none'
+            }
+          }
+
+          setTimeout(hideWithTimeout, 200)
+        })
+
+        codeEl.addEventListener('contextmenu', function (e) {
+          if (e.handle) {
+            return
+          }
+          e.preventDefault()
+
+          let items = []
+          items.push({
+            label: 'Copy',
+            onClick: () => {
+              let text = e.target.closest('.toastui-editor-contents').text()
+              navigator.clipboard.writeText(text)
+            },
+          })
+
+          vm.$contextmenu({
+            x: e.pageX,
+            y: e.pageY,
+            items: items,
+          })
+
+          e.originalEvent.handle = true
+        })
+
+        codeEl.addEventListener('mouseenter', function () {
+          this.querySelector('img').style.display = 'block'
+        })
+
+        const imgCopy = codeEl.querySelector('img.copy')
+
+        if (imgCopy) {
+          imgCopy.addEventListener('mouseleave', function (e) {
+            this.classList.remove('focus')
+          })
+          imgCopy.addEventListener('mouseenter', function (e) {
+            this.classList.add('focus')
+          })
+          imgCopy.addEventListener('click', function (e) {
+            e.stopPropagation()
+
+            this.style.backgroundColor = '#bbfdc6'
+            let text = this.parentElement.textContent
+
+            if (!navigator.clipboard) {
+              fallbackCopyTextToClipboard(text)
+              return
+            }
+            navigator.clipboard.writeText(text).then(
+              function () {
+                console.log('Async: Copying to clipboard was successful!')
+              },
+              function (err) {
+                console.error('Async: Could not copy text: ', err)
+              },
+            )
+          })
+        }
       })
     },
     updateEditTags(concat) {
@@ -564,7 +568,7 @@ export default {
       if (e.handle) {
         return
       }
-      if ($(e.target).closest('.toastui-editor').length > 0) {
+      if (e.target.closest('.toastui-editor').length > 0) {
         return
       }
       // prevent the browser's default menu
@@ -576,7 +580,7 @@ export default {
         items.push({
           label: 'Copy text',
           onClick: () => {
-            let text = $(e.target).closest('.toastui-editor-contents').text()
+            let text = e.target.closest('.toastui-editor-contents').text()
             navigator.clipboard.writeText(text)
           },
         })
@@ -634,7 +638,7 @@ export default {
     },
     allAnchorOpenInNewTag(event) {
       this.$nextTick(() => {
-        $('a', event.viewer).attr('target', '_blank')
+        event.viewer.querySelector('a')?.setAttribute('target', '_blank')
       })
     },
   },
