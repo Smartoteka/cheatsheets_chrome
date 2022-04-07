@@ -568,7 +568,7 @@ export default {
       if (e.handle) {
         return
       }
-      if (e.target.closest('.toastui-editor').length > 0) {
+      if (e.target.closest('.toastui-editor') !== null) {
         return
       }
       // prevent the browser's default menu

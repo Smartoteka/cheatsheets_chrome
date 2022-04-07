@@ -146,6 +146,7 @@ import {
   getGroupTags,
   openTabs,
   standartHandle,
+  getMatches,
 } from '../src_jq/common/commonFunctions'
 import {
   cheatsheetsGroupByPreparedGroups,
@@ -234,6 +235,9 @@ export default {
     }
   },
   beforeMount() {
+    elasticlunr.tokenizer.setSeperator(/[\s(),.\]\[]+/)
+    elasticlunr.clearStopWords()
+    // elasticlunr.defaultStopWords.
     let vm = this
     let params = new URLSearchParams(window.location.search)
 
@@ -277,7 +281,7 @@ export default {
         if (
           activeElement.type === 'textarea'
           || activeElement.type === 'text'
-          || activeElement.closest('.toastui-editor').length > 0
+          || activeElement.closest('.toastui-editor') !== null
         ) {
           return
         }
@@ -319,12 +323,18 @@ export default {
       }
 
       if (request === 'clear') {
-        setTimeout(() => document.querySelector('search .select2-search__field').focus(), 5)
+        setTimeout(
+          () => document.querySelector('search .select2-search__field').focus(),
+          5,
+        )
       }
       sendResponse('success!')
     })
 
-    setTimeout(() => document.querySelector('search .select2-search__field').focus(), 5)
+    setTimeout(
+      () => document.querySelector('search .select2-search__field').focus(),
+      5,
+    )
   },
   computed: {
     groups() {
@@ -341,7 +351,10 @@ export default {
         return []
       }
 
-      if (this.selected.length > 0 && this.selected[this.selected.length - 1].text.startsWith('+')) {
+      if (
+        this.selected.length > 0
+        && this.selected[this.selected.length - 1].text.startsWith('+')
+      ) {
         let cmd = this.selected.pop().text
 
         let vm = this
@@ -377,34 +390,37 @@ export default {
       console.log('searchResults ' + tags)
 
       let cheatsheetIdToScoreMap = {}
-      this.index.search(
-        textTags,
-        {
+      this.index
+        .search(textTags, {
           fields: {
             joinedTags: { boost: 1 },
             content: { boost: 2 },
           },
-        },
-      ).forEach(el => {
-        cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
-      })
+        })
+        .forEach((el) => {
+          cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
+        })
 
       let cheatsheets = this.cheatsheets
 
       if (textTags.indexOf('hideForMe') < 0) {
-        cheatsheets = cheatsheets.filter(el => el.tags.findIndex(tag => tag.text === 'hideForMe') < 0)
+        cheatsheets = cheatsheets.filter(
+          (el) => el.tags.findIndex((tag) => tag.text === 'hideForMe') < 0,
+        )
       }
 
-      let searchResult = cheatsheets.filter(el => {
-        let score = cheatsheetIdToScoreMap[el.id]
+      let searchResult = cheatsheets
+        .filter((el) => {
+          let score = cheatsheetIdToScoreMap[el.id]
 
-        if (!score) {
-          return false
-        }
+          if (!score) {
+            return false
+          }
 
-        el.score = score
-        return true
-      }).sort(comparerFuncDesc((el) => el.score))
+          el.score = score
+          return true
+        })
+        .sort(comparerFuncDesc((el) => el.score))
       return searchResult
 
       // return this.cheatsheets.filter(
@@ -579,26 +595,30 @@ export default {
         case 'Group':
           cheatsheet.type = 'group'
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          standartHandle(this.smartotekaFabric
-            .KBManager()
-            .addCheatSheet(cheatsheet)
-            .then(() => {
-              this.resetEditState()
+          standartHandle(
+            this.smartotekaFabric
+              .KBManager()
+              .addCheatSheet(cheatsheet)
+              .then(() => {
+                this.resetEditState()
 
-              this.refresh()
-            }))
+                this.refresh()
+              }),
+          )
           break
         case 'Cheat Sheet':
         case 'Tab':
           buildSternBrokkoTree([cheatsheet], -1, 1)
-          standartHandle(this.smartotekaFabric
-            .KBManager()
-            .addCheatSheet(cheatsheet)
-            .then(() => {
-              this.resetEditState()
+          standartHandle(
+            this.smartotekaFabric
+              .KBManager()
+              .addCheatSheet(cheatsheet)
+              .then(() => {
+                this.resetEditState()
 
-              this.refresh()
-            }))
+                this.refresh()
+              }),
+          )
           break
 
         case 'Session':
@@ -613,14 +633,16 @@ export default {
           tabsToSave.unshift(cheatsheet)
 
           buildSternBrokkoTree(tabsToSave, -1, tabsToSave.length)
-          standartHandle(this.smartotekaFabric
-            .KBManager()
-            .addCheatSheets(tabsToSave)
-            .then(() => {
-              this.resetEditState()
+          standartHandle(
+            this.smartotekaFabric
+              .KBManager()
+              .addCheatSheets(tabsToSave)
+              .then(() => {
+                this.resetEditState()
 
-              this.refresh()
-            }))
+                this.refresh()
+              }),
+          )
           break
         default:
           throw new Error('Unexpected addMode' + this.addMode)
@@ -654,20 +676,26 @@ export default {
             this.setRef('id')
           })
           cheatsheets.forEach((cheatsheet) => {
-            cheatsheet.joinedTags = cheatsheet.tags.map(el => el.text).join(', ')
+            const links = getMatches(cheatsheet.content, /[^\]]+\]\((?<l>[^\)]+)\)/g, 1)
+            cheatsheet.joinedTags = cheatsheet.tags
+              .map((el) => el.text)
+              .concat(links)
+              .join(', ')
             this.index.addDoc(cheatsheet)
           })
         })
     },
     updateCheatSheet(event) {
-      standartHandle(this.smartotekaFabric
-        .KBManager()
-        .updateCheatSheets([event.cheatsheet])
-        .then(() => {
-          if (event.tagsIsModified) {
-            this.refresh()
-          }
-        }))
+      standartHandle(
+        this.smartotekaFabric
+          .KBManager()
+          .updateCheatSheets([event.cheatsheet])
+          .then(() => {
+            if (event.tagsIsModified) {
+              this.refresh()
+            }
+          }),
+      )
     },
     removeCheatSheets(event) {
       if (confirm('Are you sure?')) {

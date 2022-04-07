@@ -1,6 +1,6 @@
 {
   "name": "recorder",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Chrome extension for knowledge manage: store cheat sheets and links, browser sessions.",
   "author": "Mikhail Tatarkov",
