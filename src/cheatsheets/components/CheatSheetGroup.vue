@@ -228,8 +228,11 @@ export default {
     },
   },
   methods: {
-    openTabs() {
+    openTabs(options) {
       let tabs = this.getTabs()
+      if (options && options.first) {
+        tabs = tabs.splice(0, 1)
+      }
       openTabs(tabs)
     },
     openTabsInNewWindow() {

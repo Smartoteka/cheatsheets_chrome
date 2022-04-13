@@ -136,7 +136,7 @@ import CheatSheet from './components/CheatSheet'
 import CheatSheetGroup from './components/CheatSheetGroup'
 import Select2 from '../common/Select2'
 import StatusBar from './components/StatusBar'
-
+import SearchDriver from '@/src_jq/common/searchDriver'
 import {
   unique,
   getSmartotekaFabric,
@@ -150,19 +150,11 @@ import {
 } from '../src_jq/common/commonFunctions'
 import {
   cheatsheetsGroupByPreparedGroups,
-  findTagsInOrderedTags,
   sortSternBroko,
   moveCheatSheets,
   hashCode,
   buildSternBrokkoTree,
 } from '../src_jq/common/cheatSheetsManage'
-import { comparerFunc, comparerFuncDesc } from '../src_jq/common/rateTags'
-
-const elasticlunr = require('elasticlunr')
-
-require('../lib/lunr.stemmer.support.js')(elasticlunr)
-require('../lib/lunr.ru.js')(elasticlunr)
-require('../lib/lunr.multi.js')(elasticlunr)
 
 export default {
   name: 'App',
@@ -235,9 +227,7 @@ export default {
     }
   },
   beforeMount() {
-    elasticlunr.tokenizer.setSeperator(/[\s(),.\]\[]+/)
-    elasticlunr.clearStopWords()
-    // elasticlunr.defaultStopWords.
+    this.searchDriver = new SearchDriver()
     let vm = this
     let params = new URLSearchParams(window.location.search)
 
@@ -360,7 +350,10 @@ export default {
         let vm = this
         this.$nextTick(() => {
           switch (cmd) {
-            case '+go':
+            case '+gf':
+              vm.$refs.cheatSheetGroup.openTabs({ first: true })
+              break
+            case '+ga':
               vm.$refs.cheatSheetGroup.openTabs()
               break
             case '+c':
@@ -384,44 +377,11 @@ export default {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
       }
 
-      let findTags = this.selected
-        .map((el) => parseInt(el.id, 10))
-        .sort(comparerFunc((el) => el))
       console.log('searchResults ' + tags)
 
-      let cheatsheetIdToScoreMap = {}
-      this.index
-        .search(textTags, {
-          fields: {
-            joinedTags: { boost: 1 },
-            content: { boost: 2 },
-          },
-        })
-        .forEach((el) => {
-          cheatsheetIdToScoreMap[parseInt(el.ref, 10)] = el.score
-        })
+      let searchResults = this.searchDriver.search(textTags)
 
-      let cheatsheets = this.cheatsheets
-
-      if (textTags.indexOf('hideForMe') < 0) {
-        cheatsheets = cheatsheets.filter(
-          (el) => el.tags.findIndex((tag) => tag.text === 'hideForMe') < 0,
-        )
-      }
-
-      let searchResult = cheatsheets
-        .filter((el) => {
-          let score = cheatsheetIdToScoreMap[el.id]
-
-          if (!score) {
-            return false
-          }
-
-          el.score = score
-          return true
-        })
-        .sort(comparerFuncDesc((el) => el.score))
-      return searchResult
+      return searchResults
 
       // return this.cheatsheets.filter(
       //   (cheatsheet) => !cheatsheet.orderedTags
@@ -665,24 +625,7 @@ export default {
         .then((cheatsheets) => {
           this.cheatsheets = reactive(cheatsheets)
 
-          this.index = elasticlunr(function () {
-            // this.DocumentStore(false)
-
-            this.use(elasticlunr.multiLanguage('en', 'ru'))
-
-            this.addField('content')
-            this.addField('joinedTags')
-
-            this.setRef('id')
-          })
-          cheatsheets.forEach((cheatsheet) => {
-            const links = getMatches(cheatsheet.content, /[^\]]+\]\((?<l>[^\)]+)\)/g, 1)
-            cheatsheet.joinedTags = cheatsheet.tags
-              .map((el) => el.text)
-              .concat(links)
-              .join(', ')
-            this.index.addDoc(cheatsheet)
-          })
+          this.searchDriver.init(this.cheatsheets)
         })
     },
     updateCheatSheet(event) {

@@ -6,7 +6,6 @@
   "author": "Mikhail Tatarkov",
   "scripts": {
     "build": "cross-env NODE_ENV=development webpack --hide-modules",
-    "test:unit": "vue-cli-service test:unit",
     "build:prod": "cross-env NODE_ENV=production webpack --hide-modules",
     "dev": "set NODE_ENV=development && webpack --mode development --watch --hide-modules",
     "test": "vue-cli-service test:unit"

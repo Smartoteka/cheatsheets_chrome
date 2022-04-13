@@ -156,10 +156,10 @@ const config = {
           const manifestObj = JSON.parse(content)
           manifestObj.version = version
 
-          if (config.mode === 'development') {
-            manifestObj.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'"
-            // manifestObj.web_accessible_resources.push('html/*')
-          }
+          // if (config.mode === 'development') {
+          //   manifestObj.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'"
+          //   // manifestObj.web_accessible_resources.push('html/*')
+          // }
 
           return JSON.stringify(manifestObj, null, 2)
         },

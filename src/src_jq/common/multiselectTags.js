@@ -39,7 +39,7 @@ export default function createMultiselectTags(selector, tags, helpTags, placehol
         select2List.prevOptions = null
       }
       if (params.term.length > 0 && params.term === '+') {
-        let cmds = ['go', 'c', 'nw', 'co'].map(el => {
+        let cmds = ['ga', 'gf', 'c', 'nw', 'co'].map(el => {
           let text = '+' + el
           return {
             id: hashCode(text),
