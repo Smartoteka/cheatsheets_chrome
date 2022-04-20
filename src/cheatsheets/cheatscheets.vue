@@ -29,7 +29,7 @@
           style="min-width: 350px; width: 100%"
           :type="newCheatSheet.type"
           :cheatsheet="newCheatSheet"
-          :allTags="options"
+          :options="async (query) => await queryOptions(query)"
           v-on:update-cheatsheet="saveNewCheatSheet"
           v-on:cancel-edit="cancelNewCheatSheet"
           :mode="'add'"
@@ -64,8 +64,27 @@
 
       <search v-if="!newCheatSheet || distributeTabToGroups">
         <!-- <p>Selected: {{ selected }}</p> -->
+
         <div style="display: flex">
-          <select2
+          <Multiselect
+          ref="multiselect"
+          label="text"
+          valueProp="id"
+          v-model="selected"
+          mode="tags"
+          placeholder="Click here and start typing to search"
+          :options="async (query) => await queryOptions(query)"
+          :addOptionOn="['tab','enter','space']"
+          :min-chars="0"
+          :limit="20"
+          :resolve-on-load="false"
+          :close-on-select="true"
+          :create-option="true"
+          :delay="0"
+          :searchable="true"
+          @change="searchTagsChange"
+        />
+          <!-- <select2
             :options="options"
             v-model="selected"
             :searchResults="searchResults"
@@ -73,7 +92,7 @@
             v-on:change="searchTagsChange"
             :placeholder="'Click here and start typing to search'"
           >
-          </select2>
+          </select2> -->
           <img
             class="ctrl-img search-img"
             src="/images/google.svg"
@@ -112,7 +131,7 @@
             :key="group.id"
             :group="group"
             :showChildren="groups.length <= 2"
-            :allTags="options"
+            :options="async (query) => await queryOptions(query)"
             :searchTags="selected"
             :showMode="showMode"
             v-on:update-cheatsheet="updateCheatSheet($event)"
@@ -129,6 +148,10 @@
 
 <script>
 import { reactive } from 'vue'
+import '@vueform/multiselect/themes/default.css'
+
+import Multiselect from '@vueform/multiselect'
+import Fuse from '@/src_jq/libraries/fuse'
 import storage from '../utils/storage'
 import Navbar from '../common/Navbar'
 
@@ -146,7 +169,6 @@ import {
   getGroupTags,
   openTabs,
   standartHandle,
-  getMatches,
 } from '../src_jq/common/commonFunctions'
 import {
   cheatsheetsGroupByPreparedGroups,
@@ -164,6 +186,7 @@ export default {
     Navbar,
     Select2,
     StatusBar,
+    Multiselect,
   },
   props: {
     popup: {
@@ -173,9 +196,10 @@ export default {
   },
   data() {
     return {
+      options: [],
+      newSelected: [],
       distributeTabToGroups: false,
       selected: [],
-      options: [],
       cheatsheets: [],
       newCheatSheet: null,
       sesstionTabs: [],
@@ -244,9 +268,20 @@ export default {
     if (tags) {
       this.tagsLoad().then(() => {
         let splittedTags = tags.split(',')
-        this.selected = this.options.filter(
-          (o) => splittedTags.indexOf(o.text) >= 0,
-        )
+        // const newTags =.filter(
+        //   (o) => splittedTags.indexOf(o.text) >= 0,
+        // ).map(el => el.text)
+
+        splittedTags.forEach(tag => {
+          const findTagIndex = this.options.findIndex(opt => opt.text.toLowerCase() === tag.toLowerCase())
+          this.$refs.multiselect.addNewOption({
+            id: tag,
+            text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
+            isNew: findTagIndex === -1,
+          })
+        })
+        this.selected = splittedTags
+        this.refresh()
       })
     }
 
@@ -279,7 +314,7 @@ export default {
         switch (e.key) {
           case 'f':
             setTimeout(
-              () => document.querySelector('search .select2-search__field').focus(),
+              () => document.querySelector('search .multiselect-tags-search').focus(),
               0,
             )
             break
@@ -292,7 +327,6 @@ export default {
     window.onpopstate = function (event) {
       vm.selected = event.state.tags
         .split(',')
-        .map((el) => ({ id: el, text: el }))
     }
   },
   mounted() {
@@ -314,7 +348,7 @@ export default {
 
       if (request === 'clear') {
         setTimeout(
-          () => document.querySelector('search .select2-search__field').focus(),
+          () => document.querySelector('search .multiselect-tags-search').focus(),
           5,
         )
       }
@@ -322,7 +356,7 @@ export default {
     })
 
     setTimeout(
-      () => document.querySelector('search .select2-search__field').focus(),
+      () => document.querySelector('search .multiselect-tags-search').focus(),
       5,
     )
   },
@@ -343,9 +377,9 @@ export default {
 
       if (
         this.selected.length > 0
-        && this.selected[this.selected.length - 1].text.startsWith('+')
+        && this.selected[this.selected.length - 1].startsWith('+')
       ) {
-        let cmd = this.selected.pop().text
+        let cmd = this.selected.pop()
 
         let vm = this
         this.$nextTick(() => {
@@ -371,7 +405,7 @@ export default {
         })
       }
 
-      let textTags = this.selected.map((el) => el.text)
+      let textTags = this.selected
       let tags = textTags.join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
@@ -474,6 +508,53 @@ export default {
     },
   },
   methods: {
+    async queryOptions(query) {
+      await this.refresh()
+      const curSelectedStr = this.newSelected.join(',')
+      if (this.prevTags !== curSelectedStr) {
+        this.prevTags = curSelectedStr
+        this.autocompleteTags = this.searchDriver.getAutocomplete(this.newSelected)
+      }
+
+      if (!query) {
+        return this.autocompleteTags.map(el => ({ id: el, text: el }))
+      }
+      const options = {
+        includeScore: true,
+        includeMathces: true,
+        minMatchCharLength: 2,
+        threshold: 0.4,
+        distance: 10,
+      }
+
+      const fuse = new Fuse(this.autocompleteTags, options)
+
+      const queryWords = query.split(' ')
+      let variants = [{ item: '', score: 0 }]
+      queryWords.forEach((word) => {
+        let newItems = fuse.search(word).slice(0, 10)
+        if (newItems.length === 0) {
+          newItems = [{ item: word, score: 0 }]
+        }
+
+        const newVariants = []
+
+        variants.forEach((variant) => newItems.forEach((newItem) => {
+          newVariants.push({
+            value: variant.item + ' ' + newItem.item,
+            score: variant.score + newItem.score,
+          })
+        }))
+        variants = newVariants
+      })
+
+      variants = variants.sort((a, b) => (a.score > b.score ? 1 : a.score < b.score ? -1 : 0))
+      console.log(variants)
+      return variants.map((el) => ({
+        id: el.value.trim(),
+        text: el.value.trim(),
+      }))
+    },
     searchTagsChange() {
       // if (this.cheatsheets.length === 0) {
       this.refresh()
@@ -532,7 +613,7 @@ export default {
           },
         ])
       } else {
-        this.selected = event.tags
+        this.selected = event.tags.map(el => el.text)
       }
     },
     addCheatSheet() {
@@ -619,7 +700,7 @@ export default {
     },
     refresh() {
       console.log('cheatsheets refresh')
-      this.smartotekaFabric
+      return this.smartotekaFabric
         .queriesProvider()
         .getCheatSheets()
         .then((cheatsheets) => {

@@ -43,9 +43,9 @@ class SmartotekaFabricLocalStorage {
     tags.forEach(tag => {
       if (!tag.text) { throw new Error('Empty tag!') }
       if (!tag.id) { throw new Error('Not find id in tag ' + tag.text) }
-      if (!tag.uid || !parseInt(tag.uid, 10)) { throw new Error('Not find uid in tag ' + tag.text) }
+      //  if (!tag.uid || !parseInt(tag.uid, 10)) { throw new Error('Not find uid in tag ' + tag.text) }
 
-      if (tags.length !== unique(tags, tag => tag.uid).length) { throw new Error('not unique tags by uid!') }
+      // if (tags.length !== unique(tags, tag => tag.uid).length) { throw new Error('not unique tags by uid!') }
       if (tags.length !== unique(tags, tag => tag.text).length) { throw new Error('not unique tags by tags!') }
     })
   }
@@ -84,7 +84,7 @@ class SmartotekaFabricLocalStorage {
 
       if (!cheatsheet.tags) { throw new Error('Not find tags in cheatsheet ' + cheatsheet.id) }
 
-      if (!cheatsheet.orderedTags) { throw new Error('Not find orderedTags in cheatsheet ' + cheatsheet.id) }
+      // if (!cheatsheet.orderedTags) { throw new Error('Not find orderedTags in cheatsheet ' + cheatsheet.id) }
       that.#validateTags(cheatsheet.tags)
     })
 
@@ -194,7 +194,7 @@ class SmartotekaFabricLocalStorage {
           ch.tags.forEach(el => el.uid = hashCode(el.text))
           ch.tags = unique(ch.tags, el => el.uid)
         })
-        setSearchHashs(cheatsheets, allTags)
+        // setSearchHashs(cheatsheets, allTags)
 
         buildSternBrokkoTree(cheatsheets, -1, cheatsheets.length)
         parent.#saveCheatSheets(cheatsheets)
@@ -236,7 +236,7 @@ class SmartotekaFabricLocalStorage {
             return
           }
 
-          setSearchHashs(newCheatSheets)
+          // setSearchHashs(newCheatSheets)
 
           parent.#getCheatSheets()
             .then(cheatsheets => {
@@ -251,7 +251,7 @@ class SmartotekaFabricLocalStorage {
         return new Promise(resolve => {
           parent.#getCheatSheets()
             .then(cheatsheets => {
-              setSearchHashs(updateCheatSheets)
+              // setSearchHashs(updateCheatSheets)
 
               updateCheatSheets
                 .forEach(cheatSheet => {

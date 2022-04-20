@@ -44,7 +44,7 @@
             :key="cheatsheet.id"
             :cheatsheet="cheatsheet"
             :commonTags="searchTags"
-            :allTags="allTags"
+            :options="options"
             :showMode="showMode"
             :clickContainer="this.$refs.groupClickContainer"
             v-on:selected="selectedCheatSheet($event)"
@@ -81,7 +81,7 @@
               :group="group"
               :showAll="showAll"
               :showChildren="showAll"
-              :allTags="allTags"
+              :options="options"
               v-on:update-cheatsheet="$emit('update-cheatsheet', $event)"
               v-on:remove-cheatsheets="$emit('remove-cheatsheets', $event)"
               v-on:move-to-tags="$emit('move-to-tags', $event)"
@@ -138,9 +138,9 @@ export default {
       type: Boolean,
       default: () => false,
     },
-    allTags: {
-      type: Array,
-      default: () => [],
+    options: {
+      type: Function,
+      default: () => () => [],
     },
     level: {
       type: Number,

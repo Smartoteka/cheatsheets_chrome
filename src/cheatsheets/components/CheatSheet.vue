@@ -45,12 +45,31 @@
       >
     </p>
     <p v-if="isNotRead">
-      <select2
+      <!-- <select2
         :options="options"
         v-model="editTags"
         :placeholder="'Enumerate the tags to search for this element'"
       >
-      </select2>
+      </select2> -->
+
+      <Multiselect
+          ref="multiselect"
+          label="text"
+          valueProp="id"
+          v-model="editTags"
+          mode="tags"
+          placeholder="Enumerate the tags to search for this element"
+          :options="options"
+          :addOptionOn="['tab','enter','space']"
+          :min-chars="0"
+          :limit="20"
+          :resolve-on-load="false"
+          :close-on-select="true"
+          :create-option="true"
+          :delay="0"
+          :searchable="true"
+          @change="searchTagsChange"
+        />
     </p>
     <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
 
@@ -108,6 +127,7 @@
 <script>
 import '@toast-ui/editor/dist/toastui-editor.css' // Editor's Style
 
+import Multiselect from '@vueform/multiselect'
 import { takeWhile } from 'lodash'
 import Viewer from './Viewer'
 import Editor from './Editor'
@@ -140,6 +160,7 @@ export default {
     Editor,
     Viewer,
     Menu,
+    Multiselect,
   },
   directives: {
     'click-outside': ClickOutsideEvent,
@@ -186,10 +207,14 @@ export default {
       defautl: () => null,
       writable: true,
     },
+    options: {
+      type: Function,
+      defautl: () => () => Promise.resolve([]),
+      writable: true,
+    },
   },
   data() {
     return {
-      options: [],
       editTags: [],
       truncateHeaderWidth: 40,
       editType: 'cheatsheet',
@@ -284,7 +309,7 @@ export default {
         (t) => !(
           this.commonTags
             && this.commonTags.length > 0
-            && this.commonTags.findIndex((ct) => t.uid == ct.id) >= 0
+            && this.commonTags.findIndex((ct) => t.id == ct.id) >= 0
         ),
       )
     },
@@ -296,6 +321,8 @@ export default {
     currentMode(value) {
       if (value) {
         this.tagsLoad().then(() => this.updateEditTags())
+      } else {
+        this.allTags = null
       }
     },
     type(value) {
@@ -337,13 +364,18 @@ export default {
         .queriesProvider()
         .getTags()
         .then((tags, changed) => {
-          if (this.options.length === 0 || changed) {
+          if (!this.allTags || this.allTags.length === 0 || changed) {
+            this.allTags = tags
             let selectedTags = this.editTags
-            this.options = unique(
-              tags.filter((el) => el),
-              (el) => el.id,
-            ).map((el) => ({ id: el.uid, text: el.text }))
 
+            selectedTags.forEach(tag => {
+              const findTagIndex = this.allTags.findIndex(opt => opt.text.toLowerCase() === tag.toLowerCase())
+              this.$refs.multiselect.addNewOption({
+                id: tag,
+                text: findTagIndex === -1 ? tag : this.allTags[findTagIndex].text,
+                isNew: findTagIndex === -1,
+              })
+            })
             this.editTags = selectedTags
           }
         })
@@ -494,14 +526,16 @@ export default {
       if (!this.isNotRead) { return }
 
       if (concat && this.prevTags) {
-        let addedTags = this.cheatsheet.tags.filter(ch => this.prevTags.findIndex(pch => pch.id == ch.id) < 0)
+        let addedTags = this.cheatsheet.tags.filter(ch => this.prevTags.findIndex(pch => pch == ch) < 0)
 
-        this.editTags = unique(this.editTags.slice(0).concat(addedTags), el => el.id)
+        this.editTags = unique(this.editTags.slice(0).concat(addedTags), el => el)
 
-        let removed = this.prevTags.filter(pch => this.cheatsheet.tags.findIndex(ch => pch.id == ch.id) < 0)
+        let removed = this.prevTags.filter(pch => this.cheatsheet.tags.findIndex(ch => pch == ch) < 0)
 
-        this.editTags = this.editTags.filter(et => removed.findIndex(r => et.id == r.id) < 0)
-      } else { this.editTags = this.cheatsheet.tags.slice(0) }
+        this.editTags = this.editTags.filter(et => removed.findIndex(r => et == r) < 0)
+      } else {
+        this.editTags = this.cheatsheet.tags.slice(0).map(el => el.text)
+      }
       this.prevTags = this.cheatsheet.tags.slice(0)
     },
     toEditMode() {
@@ -517,17 +551,17 @@ export default {
       let tagsIsModified = !arraysIsEqual(
         this.editTags,
         this.cheatsheet.tags,
-        (el) => el.text,
+        (el) => el,
       )
 
       if (tagsIsModified) {
         this.cheatsheet.tags = unique(
           this.editTags.slice(0),
-          (el) => el.id,
+          (el) => el,
         ).map((t) => ({
-          id: t.text,
-          text: t.text,
-          uid: parseInt(t.id, 10),
+          id: t,
+          text: t,
+          // uid: parseInt(t, 10),
         }))
       }
 
@@ -536,7 +570,7 @@ export default {
       }
 
       this.cheatsheet.type = this.editType
-      let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags)
+      let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags.map(el => ({ id: el, text: el })))
 
       let newTags = this.editTags.filter((el) => el.newTag)
 
