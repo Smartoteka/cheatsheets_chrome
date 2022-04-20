@@ -2,13 +2,13 @@ import { getSmartotekaFabric, standartHandle } from '../common/commonFunctions'
 
 let smartotekaFabric = getSmartotekaFabric()
 
-$(function () {
+document.onreadystatechange = function () {
   registerSmartotekaHandlers()
   registerSpeedDealHandlers()
 
   function registerSpeedDealHandlers() {
-    $('#export-spead-deal-btn')
-      .click((e) => {
+    document.querySelector('#export-spead-deal-btn')
+      .addEventListener('click', function (e) {
         smartotekaFabric
           .queriesProvider()
           .exportSpeedDeal('SpeedDeal' + new Date().toJSON().replaceAll(':', '_'))
@@ -28,8 +28,8 @@ $(function () {
       let reader = new FileReader()
 
       // Setup the callback event to run when the file is read
-      reader.onload = (event) => {
-        let str = event.target.result
+      reader.onload = (e) => {
+        let str = e.target.result
         let json = JSON.parse(str)
 
         standartHandle(smartotekaFabric.KBManager().importSpeedDeal(json))
@@ -41,13 +41,14 @@ $(function () {
   }
 
   function registerSmartotekaHandlers() {
-    $('#export-all-btn').click((e) => {
-      standartHandle(
-        smartotekaFabric
-          .queriesProvider()
-          .export(new Date().toJSON().replaceAll(':', '_')),
-      )
-    })
+    document.querySelector('#export-all-btn')
+      .addEventListener('click', (e) => {
+        standartHandle(
+          smartotekaFabric
+            .queriesProvider()
+            .export(new Date().toJSON().replaceAll(':', '_')),
+        )
+      })
 
     let form = document.querySelector('#import-form')
     let file = document.querySelector('#import-file')
@@ -63,8 +64,8 @@ $(function () {
       let reader = new FileReader()
 
       // Setup the callback event to run when the file is read
-      reader.onload = (event) => {
-        let str = event.target.result
+      reader.onload = (e) => {
+        let str = e.target.result
         let json = JSON.parse(str)
 
         smartotekaFabric.KBManager().import(json)
@@ -74,4 +75,4 @@ $(function () {
       reader.readAsText(file.files[0])
     })
   }
-})
+}

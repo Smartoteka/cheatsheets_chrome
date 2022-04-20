@@ -84,15 +84,6 @@
           :searchable="true"
           @change="searchTagsChange"
         />
-          <!-- <select2
-            :options="options"
-            v-model="selected"
-            :searchResults="searchResults"
-            v-on:tags-input="tagsLoad"
-            v-on:change="searchTagsChange"
-            :placeholder="'Click here and start typing to search'"
-          >
-          </select2> -->
           <img
             class="ctrl-img search-img"
             src="/images/google.svg"
@@ -157,7 +148,6 @@ import Navbar from '../common/Navbar'
 
 import CheatSheet from './components/CheatSheet'
 import CheatSheetGroup from './components/CheatSheetGroup'
-import Select2 from '../common/Select2'
 import StatusBar from './components/StatusBar'
 import SearchDriver from '@/src_jq/common/searchDriver'
 import {
@@ -184,7 +174,6 @@ export default {
     CheatSheet,
     CheatSheetGroup,
     Navbar,
-    Select2,
     StatusBar,
     Multiselect,
   },

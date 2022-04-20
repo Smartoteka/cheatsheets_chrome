@@ -45,14 +45,7 @@
       >
     </p>
     <p v-if="isNotRead">
-      <!-- <select2
-        :options="options"
-        v-model="editTags"
-        :placeholder="'Enumerate the tags to search for this element'"
-      >
-      </select2> -->
-
-      <Multiselect
+           <Multiselect
           ref="multiselect"
           label="text"
           valueProp="id"
@@ -131,7 +124,6 @@ import Multiselect from '@vueform/multiselect'
 import { takeWhile } from 'lodash'
 import Viewer from './Viewer'
 import Editor from './Editor'
-import Select2 from '../../common/Select2'
 import ClickOutsideEvent from '../../common/directives/ClickOutside'
 import {
   unwrapCheatSheet,
@@ -156,7 +148,6 @@ export default {
     'drop-session-tabs-to-group',
   ],
   components: {
-    Select2,
     Editor,
     Viewer,
     Menu,
