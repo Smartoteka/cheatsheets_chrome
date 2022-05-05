@@ -168,6 +168,18 @@ export function getActiveTab(windowId) {
   return new Promise(r => chrome.tabs.query(params, (tabs) => r(tabs.length ? tabs[0] : null)))
 }
 
+export function queryTabs(windowId, active) {
+  let params = { }
+
+  if (windowId) {
+    params.windowId = windowId
+  }
+  if (active) {
+    params.active = active
+  }
+  return new Promise(r => chrome.tabs.query(params, (tabs) => r(tabs.length ? tabs[0] : null)))
+}
+
 export function closeTabs(tabs) {
   return new Promise(r => chrome.tabs.remove(tabs.map(el => el.id), r))
 }

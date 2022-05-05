@@ -186,7 +186,6 @@ export default {
   data() {
     return {
       options: [],
-      newSelected: [],
       distributeTabToGroups: false,
       selected: [],
       cheatsheets: [],
@@ -249,6 +248,7 @@ export default {
 
       setTimeout(() => {
         vm.addCheatSheet()
+
         vm.addMode = 'Tab'
       }, 10)
     }
@@ -331,7 +331,10 @@ export default {
         console.log("request === 'to-add'")
         setTimeout(() => {
           vm.addCheatSheet()
-          vm.addMode = 'Tab'
+          if (vm.addMode === 'Tab') {
+            vm.addMode = 'Cheat Sheet'
+          }
+          setTimeout(() => { vm.addMode = 'Tab' }, 1)
         }, 10)
       }
 
@@ -437,7 +440,7 @@ export default {
           break
 
         case 'Session':
-          let windowId = await storage.get('windowId')
+          let windowId = await storage.get('acitveTabWindowId')
           getAllTabsByWindow(windowId).then((tabs) => {
             let date = new Date()
 
@@ -485,7 +488,7 @@ export default {
           break
         case 'Tab':
           this.newCheatSheet.type = 'cheatsheet'
-          windowId = await storage.get('windowId')
+          windowId = await storage.get('acitveTabWindowId')
           getActiveTab(windowId).then((tab) => {
             this.newCheatSheet.content = this.tabLinkMarkdown(tab)
             this.newCheatSheet.link = tab.url
@@ -499,10 +502,10 @@ export default {
   methods: {
     async queryOptions(query) {
       await this.refresh()
-      const curSelectedStr = this.newSelected.join(',')
+      const curSelectedStr = this.selected.join(',')
       if (this.prevTags !== curSelectedStr) {
         this.prevTags = curSelectedStr
-        this.autocompleteTags = this.searchDriver.getAutocomplete(this.newSelected)
+        this.autocompleteTags = this.searchDriver.getAutocomplete(this.selected)
       }
 
       if (!query) {

@@ -7,6 +7,7 @@ const get = async function (key) {
     try {
       chrome.storage.local.get(key, function (value) {
         resolve(value[key])
+        console.log('get ' + key + ' ' + value[key])
       })
     } catch (error) {
       reject(error)
@@ -39,6 +40,7 @@ const getAll = async function (keys) {
 const set = async function (obj) {
   return new Promise((resolve, reject) => {
     try {
+      console.log('set' + JSON.stringify(obj))
       chrome.storage.local.set(obj, function () {
         resolve()
       })

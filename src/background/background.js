@@ -85,20 +85,23 @@ chrome.commands.onCommand.addListener(async (command) => {
     case 'open-search': {
       getActiveTab()
         .then(activeTab => {
-          storage.set({ windowId: activeTab.windowId })
+          storage.set({ acitveTabWindowId: activeTab.windowId })
           openPopup(activeTab, false)
         })
       break
     }
     case 'open-search-on-page': {
       getActiveTab()
-        .then(tab => getOrCreatePopup('search', tab, 'search/search.html', 500, 400, false))
+        .then(activeTab => {
+          storage.set({ acitveTabWindowId: activeTab.windowId })
+          getOrCreatePopup('search', activeTab, 'search/search.html', 500, 400, false)
+        })
       break
     }
     case 'add-tab-to-session': {
       getActiveTab()
         .then(activeTab => {
-          storage.set({ windowId: activeTab.windowId })
+          storage.set({ acitveTabWindowId: activeTab.windowId })
           openPopup(activeTab, true)
         })
       break

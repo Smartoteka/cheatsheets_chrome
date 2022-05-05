@@ -6,7 +6,7 @@ import 'element-plus/dist/index.css'
 import { createApp } from 'vue'
 
 import ContextMenu from '../common/vue3-context-menu/vue3-context-menu.umd.min'
-import App from './cheatscheets'
+import App from './searchOnPage'
 import { redirectCurrentTab, truncate } from '../src_jq/common/commonFunctions'
 import '../common/vue3-context-menu/vue3-context-menu.css'
 

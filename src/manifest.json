@@ -12,13 +12,15 @@
   "background": {
     "service_worker": "background/background.js"
   },
+  
   "permissions": [
     "storage",
     "unlimitedStorage",
     "tabs",
     "activeTab",
     "commands",
-    "system.display"
+    "system.display",
+    "scripting"
   ],
   "host_permissions": [
     "https://localhost:44383/*",
@@ -37,6 +39,13 @@
         "default": "Alt+T"
       },
       "description": "Add tab to selected session",
+      "action": {}
+    },
+    "open-search-on-page": {
+      "suggested_key": {
+        "default": "Alt+F"
+      },
+      "description": "Search on page",
       "action": {}
     }
   },

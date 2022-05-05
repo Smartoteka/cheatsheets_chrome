@@ -29,6 +29,8 @@ const config = {
     'popup/popup': './popup/popup.js',
     'src_jq/settings/settings': './src_jq/settings/settings.js',
     'cheatsheets/script': './cheatsheets/script.js',
+    'search/search': './search/search.js',
+    'search/searchPageEngine': './search/searchPageEngine.js',
     'login/script': './login/script.js',
   },
   output: {
@@ -148,6 +150,7 @@ const config = {
       { from: 'popup/popup.html', to: 'popup/popup.html' },
       { from: 'background/background.html', to: 'background/background.html' },
       { from: 'cheatsheets/page.html', to: 'cheatsheets/page.html' },
+      { from: 'search/search.html', to: 'search/search.html' },
       { from: 'login/page.html', to: 'login/page.html' },
       {
         from: 'manifest.json',
