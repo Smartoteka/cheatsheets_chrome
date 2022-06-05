@@ -1,12 +1,13 @@
 <template>
   <div
-   @drop="onDrop($event)"
-      @dragleave="dragLeave($event)"
-      @dragover="dragOver($event)"
+    @drop="onDrop($event)"
+    @dragleave="dragLeave($event)"
+    @dragover="dragOver($event)"
     :class="
       'cheatsheet ' +
       (cheatsheet.link ? 'link' : 'info') +
-      (cheatsheet.selected || mouseFocus || isNotRead ? ' selected' : '')
+      (cheatsheet.selected || mouseFocus ? ' selected' : '') +
+      (mouseFocus && !isNotRead ? ' focused' : '')
     "
     @click="selectChange($event)"
     v-click-outside="clickOutside"
@@ -41,28 +42,28 @@
         v-for="tag in tags"
         :key="tag.id"
         @click="moveToTags(tag.text, $event)"
-        >{{ tag.text }}&nbsp;&nbsp;</span
+        >{{ tag.text || tag }}&nbsp;&nbsp;</span
       >
     </p>
     <p v-if="isNotRead">
-           <Multiselect
-          ref="multiselect"
-          label="text"
-          valueProp="id"
-          v-model="editTags"
-          mode="tags"
-          placeholder="Enumerate the tags to search for this element"
-          :options="options"
-          :addOptionOn="['tab','enter','space']"
-          :min-chars="0"
-          :limit="20"
-          :resolve-on-load="false"
-          :close-on-select="true"
-          :create-option="true"
-          :delay="0"
-          :searchable="true"
-          @change="searchTagsChange"
-        />
+      <Multiselect
+        ref="multiselect"
+        label="text"
+        valueProp="id"
+        v-model="editTags"
+        mode="tags"
+        placeholder="Enumerate the tags to search for this element"
+        :options="options"
+        :addOptionOn="['tab', 'enter', 'space']"
+        :min-chars="0"
+        :limit="20"
+        :resolve-on-load="false"
+        :close-on-select="true"
+        :create-option="true"
+        :delay="0"
+        :searchable="true"
+        @change="searchTagsChange"
+      />
     </p>
     <Editor ref="editor" v-if="isNotRead" :initialValue="cheatsheet.content" />
 
@@ -80,7 +81,6 @@
       :initialValue="content"
       v-on:rendered="allAnchorOpenInNewTag($event)"
     />
-
     <div class="edit-buttons" v-if="isNotRead">
       <span
         class="label"
@@ -357,13 +357,16 @@ export default {
         .then((tags, changed) => {
           if (!this.allTags || this.allTags.length === 0 || changed) {
             this.allTags = tags
-            let selectedTags = this.editTags
+            let selectedTags = this.editTags.filter((el) => el)
 
-            selectedTags.forEach(tag => {
-              const findTagIndex = this.allTags.findIndex(opt => opt.text.toLowerCase() === tag.toLowerCase())
+            selectedTags.forEach((tag) => {
+              const findTagIndex = this.allTags.findIndex(
+                (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
+              )
               this.$refs.multiselect.addNewOption({
                 id: tag,
-                text: findTagIndex === -1 ? tag : this.allTags[findTagIndex].text,
+                text:
+                  findTagIndex === -1 ? tag : this.allTags[findTagIndex].text,
                 isNew: findTagIndex === -1,
               })
             })
@@ -378,7 +381,8 @@ export default {
       if (this.cheatsheet.selected) {
         console.log('outside!')
         if (
-          (!this.clickContainer || this.clickContainer.contains(event.target))
+          (!this.clickContainer
+            || this.clickContainer.contains(event.target))
           && !(
             event.ctrlKey
             || event.shiftKey
@@ -431,13 +435,14 @@ export default {
       let vm = this
 
       const toRemove = this.$el.querySelector('code .copy')
-      if (toRemove) { toRemove.parentNode.removeChild(toRemove) }
+      if (toRemove) {
+        toRemove.parentNode.removeChild(toRemove)
+      }
       let codeEls = this.$el.querySelectorAll('code')
 
-      codeEls.forEach(codeEl => {
-        codeEl.innerHTML += (
-          '<img class="copy" style="display:none" src="/images/copy.svg" data-v-2d0b1742="">'
-        )
+      codeEls.forEach((codeEl) => {
+        codeEl.innerHTML
+          += '<img class="copy" style="display:none" src="/images/copy.svg" data-v-2d0b1742="">'
         codeEl.style.position = 'relative'
 
         codeEl.addEventListener('mouseleave', function () {
@@ -514,18 +519,29 @@ export default {
       })
     },
     updateEditTags(concat) {
-      if (!this.isNotRead) { return }
+      if (!this.isNotRead) {
+        return
+      }
 
       if (concat && this.prevTags) {
-        let addedTags = this.cheatsheet.tags.filter(ch => this.prevTags.findIndex(pch => pch == ch) < 0)
+        let addedTags = this.cheatsheet.tags.filter(
+          (ch) => this.prevTags.findIndex((pch) => pch == ch) < 0,
+        )
 
-        this.editTags = unique(this.editTags.slice(0).concat(addedTags), el => el)
+        this.editTags = unique(
+          this.editTags.slice(0).concat(addedTags),
+          (el) => el,
+        )
 
-        let removed = this.prevTags.filter(pch => this.cheatsheet.tags.findIndex(ch => pch == ch) < 0)
+        let removed = this.prevTags.filter(
+          (pch) => this.cheatsheet.tags.findIndex((ch) => pch == ch) < 0,
+        )
 
-        this.editTags = this.editTags.filter(et => removed.findIndex(r => et == r) < 0)
+        this.editTags = this.editTags.filter(
+          (et) => removed.findIndex((r) => et == r) < 0,
+        )
       } else {
-        this.editTags = this.cheatsheet.tags.slice(0).map(el => el.text)
+        this.editTags = this.cheatsheet.tags.slice(0).map((el) => el.text)
       }
       this.prevTags = this.cheatsheet.tags.slice(0)
     },
@@ -546,14 +562,13 @@ export default {
       )
 
       if (tagsIsModified) {
-        this.cheatsheet.tags = unique(
-          this.editTags.slice(0),
-          (el) => el,
-        ).map((t) => ({
-          id: t,
-          text: t,
-          // uid: parseInt(t, 10),
-        }))
+        this.cheatsheet.tags = unique(this.editTags.slice(0), (el) => el).map(
+          (t) => ({
+            id: t,
+            text: t,
+            // uid: parseInt(t, 10),
+          }),
+        )
       }
 
       if (this.$refs.editor) {
@@ -561,7 +576,10 @@ export default {
       }
 
       this.cheatsheet.type = this.editType
-      let saveCheatSheet = unwrapCheatSheet(this.cheatsheet, this.editTags.map(el => ({ id: el, text: el })))
+      let saveCheatSheet = unwrapCheatSheet(
+        this.cheatsheet,
+        this.editTags.map((el) => ({ id: el, text: el })),
+      )
 
       let newTags = this.editTags.filter((el) => el.newTag)
 
@@ -685,10 +703,14 @@ $sky: #e6f6fe;
     padding: 5px 5px;
   }
   div.selected {
-    border: 1px solid #bbfdc6;
+    border: 2px solid #bbfdc6;
     border-radius: 5px;
     color: green;
   }
+}
+
+.focused {
+  border-width: 0.5px !important;
 }
 
 .info.selected {
@@ -698,10 +720,6 @@ $sky: #e6f6fe;
 .link.selected {
   border-color: #9adafa;
 }
-
-// .selected {
-//   border-width: 2px !important;
-// }
 
 .hide {
   display: none !important;
@@ -714,7 +732,7 @@ $sky: #e6f6fe;
 }
 
 .cheatsheet {
-  border-width: 2px !important;
+  border-width: 2px;
   border-style: solid;
   border-color: $background;
   position: relative;

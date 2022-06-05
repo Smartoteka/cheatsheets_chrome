@@ -65,25 +65,28 @@
       <search v-if="!newCheatSheet || distributeTabToGroups">
         <!-- <p>Selected: {{ selected }}</p> -->
 
-        <div style="display: flex">
+  <button @click="hide=!hide">
+    hide
+    </button>
+        <div v-if="!hide" style="display: flex">
           <Multiselect
-          ref="multiselect"
-          label="text"
-          valueProp="id"
-          v-model="selected"
-          mode="tags"
-          placeholder="Click here and start typing to search"
-          :options="async (query) => await queryOptions(query)"
-          :addOptionOn="['tab','enter','space']"
-          :min-chars="0"
-          :limit="20"
-          :resolve-on-load="false"
-          :close-on-select="true"
-          :create-option="true"
-          :delay="0"
-          :searchable="true"
-          @change="searchTagsChange"
-        />
+            ref="multiselect"
+            label="text"
+            valueProp="id"
+            v-model="selected"
+            mode="tags"
+            placeholder="Click here and start typing to search"
+            :options="async (query) => await queryOptions(query)"
+            :addOptionOn="['tab', 'enter', 'space']"
+            :min-chars="0"
+            :limit="20"
+            :resolve-on-load="true"
+            :close-on-select="true"
+            :create-option="true"
+            :delay="0"
+            :searchable="true"
+            @change="searchTagsChange"
+          />
           <img
             class="ctrl-img search-img"
             src="/images/google.svg"
@@ -185,6 +188,7 @@ export default {
   },
   data() {
     return {
+      hide: false,
       options: [],
       distributeTabToGroups: false,
       selected: [],
@@ -261,14 +265,20 @@ export default {
         //   (o) => splittedTags.indexOf(o.text) >= 0,
         // ).map(el => el.text)
 
-        splittedTags.forEach(tag => {
-          const findTagIndex = this.options.findIndex(opt => opt.text.toLowerCase() === tag.toLowerCase())
-          this.$refs.multiselect.addNewOption({
-            id: tag,
-            text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
-            isNew: findTagIndex === -1,
+        splittedTags = splittedTags
+          .filter((el) => el && el.trim())
+
+        splittedTags
+          .forEach((tag) => {
+            const findTagIndex = this.options.findIndex(
+              (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
+            )
+            this.$refs.multiselect.addNewOption({
+              id: tag,
+              text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
+              isNew: findTagIndex === -1,
+            })
           })
-        })
         this.selected = splittedTags
         this.refresh()
       })
@@ -303,7 +313,9 @@ export default {
         switch (e.key) {
           case 'f':
             setTimeout(
-              () => document.querySelector('search .multiselect-tags-search').focus(),
+              () => document
+                .querySelector('search .multiselect-tags-search')
+                .focus(),
               0,
             )
             break
@@ -314,8 +326,7 @@ export default {
       false,
     )
     window.onpopstate = function (event) {
-      vm.selected = event.state.tags
-        .split(',')
+      vm.selected = event.state.tags.split(',')
     }
   },
   mounted() {
@@ -334,7 +345,9 @@ export default {
           if (vm.addMode === 'Tab') {
             vm.addMode = 'Cheat Sheet'
           }
-          setTimeout(() => { vm.addMode = 'Tab' }, 1)
+          setTimeout(() => {
+            vm.addMode = 'Tab'
+          }, 1)
         }, 10)
       }
 
@@ -501,15 +514,20 @@ export default {
   },
   methods: {
     async queryOptions(query) {
+      if (!query && this.selected.length > 0) {
+        return this.selected
+      }
       await this.refresh()
       const curSelectedStr = this.selected.join(',')
       if (this.prevTags !== curSelectedStr) {
         this.prevTags = curSelectedStr
-        this.autocompleteTags = this.searchDriver.getAutocomplete(this.selected)
+        this.autocompleteTags = this.searchDriver.getAutocomplete(
+          this.selected,
+        )
       }
 
       if (!query) {
-        return this.autocompleteTags.map(el => ({ id: el, text: el }))
+        return this.autocompleteTags.map((el) => ({ id: el, text: el }))
       }
       const options = {
         includeScore: true,
@@ -605,7 +623,7 @@ export default {
           },
         ])
       } else {
-        this.selected = event.tags.map(el => el.text)
+        this.selected = event.tags.map((el) => el.text)
       }
     },
     addCheatSheet() {
@@ -615,7 +633,7 @@ export default {
         type: 'cheatsheet',
         date: date,
         content: '',
-        tags: this.selected.slice(0),
+        tags: this.selected.map((el) => ({ text: el, id: el })).slice(0),
       }
 
       if (this.newCheatSheet.tags.length > 0) {

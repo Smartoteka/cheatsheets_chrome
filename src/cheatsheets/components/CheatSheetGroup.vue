@@ -273,9 +273,16 @@ export default {
     },
     getTabs() {
       let items = this.group.items
-      items = this.isContainsSelected ? this.getSelected() : items
+      if (this.isContainsSelected) {
+        items = this.getSelected()
+      }
 
-      return items.filter((el) => el.link).map((el) => ({ url: el.link }))
+      items = items.filter((el) => el.link).map((el) => ({ url: el.link }))
+
+      if (items.length === 0) {
+        alert('Ссылки ' + (this.isContainsSelected ? 'в выделенных записях ' : '') + 'не найдены')
+      }
+      return items
     },
     moveToTags(tagId) {
       let flag = true
