@@ -48,17 +48,24 @@
           />
         </div>
       </search>
+      <CheatSheet
+            v-for="cheatsheet in cheatsheets"
+            :key="cheatsheet.id"
+            :cheatsheet="cheatsheet"
+            @selected="cheatsheet_selected($event)"
+          ></CheatSheet>
     </main>
   </div>
 </template>
 
 <script>
 
+import { reactive } from 'vue'
 import '@vueform/multiselect/themes/default.css'
 
 import Multiselect from '@vueform/multiselect'
+import CheatSheet from './components/CheatSheet'
 import Navbar from '../common/Navbar'
-
 import StatusBar from './components/StatusBar'
 import SearchDriver from '@/src_jq/common/searchDriver'
 import {
@@ -75,6 +82,7 @@ export default {
     Navbar,
     StatusBar,
     Multiselect,
+    CheatSheet,
   },
   props: {
     popup: {
@@ -86,6 +94,7 @@ export default {
     return {
       options: [],
       selected: [],
+      cheatsheets: [],
     }
   },
   beforeMount() {
@@ -187,6 +196,18 @@ export default {
   watch: {
   },
   methods: {
+    cheatsheet_selected(event) {
+      chrome.tabs.sendMessage(
+        this.tabId,
+        {
+          cmd: 'scrollTo',
+          id: event.id,
+        },
+        (result) => {
+          console.log(result)
+        },
+      )
+    },
     searchTagsChange() {
       // if (this.cheatsheets.length === 0) {
       this.refresh()
@@ -194,6 +215,7 @@ export default {
 
       storage.get('acitveTabWindowId').then(windowId => {
         getActiveTab(windowId).then((tab) => {
+          this.tabId = tab.id
           chrome.scripting.executeScript(
             {
               target: { tabId: tab.id },
@@ -204,9 +226,17 @@ export default {
               // },
             },
             () => {
-              chrome.tabs.sendMessage(tab.id, this.selected, (result) => {
-                console.log(result)
-              })
+              chrome.tabs.sendMessage(
+                tab.id,
+                {
+                  cmd: 'search',
+                  tags: this.selected,
+                },
+                (result) => {
+                  console.log(result)
+                  this.cheatsheets = reactive(result)
+                },
+              )
             },
           )
         })
@@ -214,14 +244,6 @@ export default {
     },
     refresh() {
       console.log('cheatsheets refresh')
-      return this.smartotekaFabric
-        .queriesProvider()
-        .getCheatSheets()
-        .then((cheatsheets) => {
-          this.cheatsheets = reactive(cheatsheets)
-
-          this.searchDriver.init(this.cheatsheets)
-        })
     },
     tagsLoad() {
       return this.smartotekaFabric

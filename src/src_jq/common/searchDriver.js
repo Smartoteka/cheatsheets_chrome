@@ -11,7 +11,7 @@ require('../../lib/lunr.multi.js')(elasticlunr)
 
 export default class SearchDriver {
   constructor() {
-    elasticlunr.tokenizer.setSeperator(/["-\/:\s(),.\]\[]+/)
+    elasticlunr.tokenizer.setSeperator(/[@"-\/:\s(),.\]\[]+/)
     elasticlunr.clearStopWords()
     elasticlunr.addStopWords(['https', 'http', 'www', 'com', 'ru', 'nbsp'])
   }
@@ -31,7 +31,7 @@ export default class SearchDriver {
       if (cheatsheet.tags.findIndex(tag => tag.text === 'hideForMe') !== -1) { return }
       const links = getMatches(cheatsheet.content, /[^\]]+\]\((?<l>[^\)]+)\)/g, 1)
       let tagsText = cheatsheet.tags
-        .map((el) => el.text)
+        .map((el) => el.text || el)
       let joinedTags = tagsText
         .concat(links)
         .join(' ')

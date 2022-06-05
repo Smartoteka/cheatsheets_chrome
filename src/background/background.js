@@ -83,11 +83,7 @@ chrome.commands.onCommand.addListener(async (command) => {
   console.log('Command:' + command)
   switch (command) {
     case 'open-search': {
-      getActiveTab()
-        .then(activeTab => {
-          storage.set({ acitveTabWindowId: activeTab.windowId })
-          openPopup(activeTab, false)
-        })
+      openPopup(null, false)
       break
     }
     case 'open-search-on-page': {

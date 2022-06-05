@@ -1,37 +1,76 @@
 import SearchDriver from '@/src_jq/common/searchDriver'
 
-chrome.runtime.onMessage.addListener((tags) => {
-  console.log(tags)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log(request)
 
-  let docs = getDocumentsOnPage()
+  switch (request.cmd) {
+    case 'scrollTo': {
+      if (window.docs) {
+        const index = window.docs.findIndex(el => el.id === request.id)
 
-  console.log(docs)
+        if (index >= 0) {
+          window.docs[index].domEls[0].scrollIntoView()
 
-  let searchDriver = new SearchDriver()
-
-  searchDriver.init(docs)
-  let result = searchDriver.search(tags)
-
-  console.log(result)
-
-  document.querySelectorAll('article>*').forEach(el => {
-    el.style.display = 'none'
-
-    if (el.tagName === 'TABLE') {
-      el.querySelectorAll('tr').forEach(tr => { tr.style.display = 'none' })
+          sendResponse('success')
+        }
+      }
+      break
     }
+    case 'search':
+    {
+      let docs = getDocumentsOnPage()
 
-    if (el.tagName === 'UL') {
-      el.querySelectorAll('li').forEach(tr => { tr.style.display = 'none' })
+      console.log(docs)
+
+      let searchDriver = new SearchDriver()
+
+      searchDriver.init(docs)
+      let result = searchDriver.search(request.tags)
+
+      console.log(result)
+
+      document.querySelectorAll('article>*').forEach(el => {
+        el.style.display = 'none'
+
+        if (el.tagName === 'TABLE') {
+          el.querySelectorAll('tr').forEach(tr => { tr.style.display = 'none' })
+        }
+
+        if (el.tagName === 'UL') {
+          el.querySelectorAll('li').forEach(tr => { tr.style.display = 'none' })
+        }
+      })
+
+      result.forEach(el => {
+        let skip = false
+        el.domEls.forEach(domEl => {
+          if (skip) { return }
+          if ((domEl.tagName === 'TABLE' || domEl.tagName === 'UL') && !domEl.style.display) {
+            skip = true
+            return
+          }
+
+          domEl.style.removeProperty('display')
+        })
+      })
+
+      if (result.length > 0) {
+        result[0].domEls[0].scrollIntoView()
+      }
+
+      window.docs = result
+
+      sendResponse(result.map(el => ({
+        id: el.id,
+        content: el.content.substring(0, 50),
+        score: el.score,
+        tags: el.tags,
+      })))
+      break
     }
-  })
-
-  result.forEach(el => {
-    el.domEls.forEach(domEl => { domEl.style.removeProperty('display') })
-  })
-
-  if (result.length > 0) {
-    result[0].domEls[0].scrollIntoView()
+    default: {
+      throw new Error('Unexpected command ' + request.cmd)
+    }
   }
 })
 
@@ -54,6 +93,7 @@ function getDocumentsOnPage() {
       tags: tags,
       domEls: domEls.length === 1 ? domEls.slice() : domEls.splice(0, domEls.length + (isEndTag ? -1 : 0)),
     }
+    newElement.domEls = newElement.domEls.concat(tagStack)
 
     if (newElement.domEls.length === 0) {
       throw new Error('newElement Dom elements is empty')
@@ -103,8 +143,10 @@ function getDocumentsOnPage() {
       // TODO: хорошо добавить проверку перед таблицей информация относится к ней или нет. как это сделать?
 
       let tableHeader = el.querySelectorAll('thead tr')[0]
+      beforeTable.domEls.push(el)
       beforeTable.domEls.push(tableHeader)
 
+      domEls.pop()// pop for first row else table will duplicate
       Array.from(el.querySelectorAll('tbody tr')).forEach(row => {
         beforeTable.domEls.push(row)
 
@@ -112,10 +154,12 @@ function getDocumentsOnPage() {
         domEls.push(tableHeader)
         domEls.push(row)
 
+        tagStack.push(row.querySelector('td'))
         addDoc(
           row.innerText,
           tagStack.map(tag => tag.innerText),
         )
+        tagStack.pop()
       })
     } else if (el.tagName === 'UL') {
       let beforeTable = endTag()

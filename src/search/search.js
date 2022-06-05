@@ -7,7 +7,12 @@ import { createApp } from 'vue'
 
 import App from '../cheatsheets/searchOnPage'
 import '../common/vue3-context-menu/vue3-context-menu.css'
+import { redirectCurrentTab, truncate } from '../src_jq/common/commonFunctions'
 
 const app = createApp(App, { popup: true })
+
+app.config.globalProperties.$filters = {
+  truncate: truncate,
+}
 
 app.mount('#app')
