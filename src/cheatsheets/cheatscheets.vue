@@ -116,7 +116,7 @@
           <!-- :showAll="
               (groups.length === 1 || searchResults.length < 4)
             " -->
-          <div v-if="selected.length > 0 && groups.length === 0">
+          <div v-if="selectedTags.length > 0 && groups.length === 0">
             No results found
           </div>
           <CheatSheetGroup
@@ -126,7 +126,7 @@
             :group="group"
             :showChildren="groups.length <= 2"
             :options="async (query) => await queryOptions(query)"
-            :searchTags="selected"
+            :searchTags="selectedTags"
             :showMode="showMode"
             v-on:update-cheatsheet="updateCheatSheet($event)"
             v-on:remove-cheatsheets="removeCheatSheets($event)"
@@ -268,18 +268,8 @@ export default {
         splittedTags = splittedTags
           .filter((el) => el && el.trim())
 
-        splittedTags
-          .forEach((tag) => {
-            const findTagIndex = this.options.findIndex(
-              (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
-            )
-            this.$refs.multiselect.addNewOption({
-              id: tag,
-              text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
-              isNew: findTagIndex === -1,
-            })
-          })
-        this.selected = splittedTags
+        this.selectedTags = splittedTags
+
         this.refresh()
       })
     }
@@ -366,11 +356,31 @@ export default {
     )
   },
   computed: {
+    selectedTags: {
+      get() {
+        return this.selected.filter(el => el)
+      },
+      set(value) {
+        if (value) {
+          value.filter(el => el).forEach((tag) => {
+            const findTagIndex = this.options.findIndex(
+              (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
+            )
+            this.$refs.multiselect.addNewOption({
+              id: tag,
+              text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
+              isNew: findTagIndex === -1,
+            })
+          })
+        }
+        this.selected = value
+      },
+    },
     groups() {
       let cheatsheets = this.searchResults
       let result = cheatsheetsGroupByPreparedGroups(
         cheatsheets,
-        this.selected.length,
+        this.selectedTags.length,
       )
 
       return reactive(result)
@@ -381,10 +391,10 @@ export default {
       }
 
       if (
-        this.selected.length > 0
-        && this.selected[this.selected.length - 1].startsWith('+')
+        this.selectedTags.length > 0
+        && this.selectedTags[this.selectedTags.length - 1].startsWith('+')
       ) {
-        let cmd = this.selected.pop()
+        let cmd = this.selectedTags.pop()
 
         let vm = this
         this.$nextTick(() => {
@@ -410,7 +420,7 @@ export default {
         })
       }
 
-      let textTags = this.selected
+      let textTags = this.selectedTags
       let tags = textTags.join(',')
       if (window.history.state && window.history.state.tags !== tags) {
         window.history.pushState({ tags: tags }, null, '?tags=' + tags)
@@ -514,15 +524,15 @@ export default {
   },
   methods: {
     async queryOptions(query) {
-      if (!query && this.selected.length > 0) {
-        return this.selected
+      if (!query && this.selectedTags.length > 0) {
+        return this.selectedTags
       }
       await this.refresh()
-      const curSelectedStr = this.selected.join(',')
+      const curSelectedStr = this.selectedTags.join(',')
       if (this.prevTags !== curSelectedStr) {
         this.prevTags = curSelectedStr
         this.autocompleteTags = this.searchDriver.getAutocomplete(
-          this.selected,
+          this.selectedTags,
         )
       }
 
@@ -576,13 +586,13 @@ export default {
         .getTags()
         .then((tags, changed) => {
           if (this.options.length === 0 || changed) {
-            let selected = this.selected
+            let selectedTags = this.selectedTags
             this.options = unique(
               tags.filter((el) => el),
               (el) => el.id,
             ).map((el) => ({ id: el.uid, text: el.text }))
 
-            this.selected = selected
+            this.selectedTags = selectedTags
           }
         })
     },
@@ -619,11 +629,11 @@ export default {
           {
             url:
               '../cheatsheets/page.html?tags='
-              + event.tags.map((el) => el.text).join(','),
+              + encodeURIComponent(event.tags.map((el) => el.text).join(',')),
           },
         ])
       } else {
-        this.selected = event.tags.map((el) => el.text)
+        this.selectedTags = event.tags.map((el) => el.text)
       }
     },
     addCheatSheet() {
@@ -633,7 +643,7 @@ export default {
         type: 'cheatsheet',
         date: date,
         content: '',
-        tags: this.selected.map((el) => ({ text: el, id: el })).slice(0),
+        tags: this.selectedTags.map((el) => ({ text: el, id: el })).slice(0),
       }
 
       if (this.newCheatSheet.tags.length > 0) {
@@ -796,12 +806,12 @@ export default {
         })
     },
     google() {
-      let tags = this.selected.map((el) => el.text).join(' ')
+      let tags = this.selectedTags.map((el) => el.text).join(' ')
       let tab = { url: 'https://www.google.com/search?q=' + tags }
       openTabs([tab])
     },
     stackoverflow() {
-      let tags = this.selected.map((el) => el.text).join(' ')
+      let tags = this.selectedTags.map((el) => el.text).join(' ')
       let tab = { url: 'https://stackoverflow.com/search?q=' + tags }
       openTabs([tab])
     },

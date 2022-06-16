@@ -572,7 +572,7 @@ export default {
       }
 
       if (this.$refs.editor) {
-        this.cheatsheet.content = this.$refs.editor.editor.getMarkdown()
+        this.cheatsheet.content = this.$refs.editor.getEditor().getMarkdown()
       }
 
       this.cheatsheet.type = this.editType

@@ -31,6 +31,7 @@ const config = {
     'cheatsheets/script': './cheatsheets/script.js',
     'search/search': './search/search.js',
     'search/searchPageEngine': './search/searchPageEngine.js',
+    'cheatsheets/contentScript': './cheatsheets/contentScript.js',
     'login/script': './login/script.js',
   },
   output: {

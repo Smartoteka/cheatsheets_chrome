@@ -54,6 +54,9 @@ export const optionsMixin = {
     },
   },
   unmounted() {
+    if (!this.editor) {
+      return
+    }
     editorEvents.forEach((event) => {
       this.editor.off(event)
     })

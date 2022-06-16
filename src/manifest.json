@@ -26,6 +26,16 @@
     "https://localhost:44383/*",
     "https://www.api.smartoteka.ru/*"
   ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
+        "cheatsheets/contentScript.js"
+      ]
+    }
+  ],
   "commands": {
     "open-search": {
       "suggested_key": {
