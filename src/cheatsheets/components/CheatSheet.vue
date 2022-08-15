@@ -539,7 +539,7 @@ export default {
 
         this.editTags = this.editTags.filter(
           (et) => removed.findIndex((r) => et == r) < 0,
-        )
+        ).map(el => (el.text ? el.text : el))
       } else {
         this.editTags = this.cheatsheet.tags.slice(0).map((el) => el.text)
       }

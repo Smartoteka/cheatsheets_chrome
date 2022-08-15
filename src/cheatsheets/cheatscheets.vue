@@ -65,9 +65,9 @@
       <search v-if="!newCheatSheet || distributeTabToGroups">
         <!-- <p>Selected: {{ selected }}</p> -->
 
-  <button @click="hide=!hide">
+        <!-- <button @click="hide=!hide">
     hide
-    </button>
+    </button> -->
         <div v-if="!hide" style="display: flex">
           <Multiselect
             ref="multiselect"
@@ -265,8 +265,7 @@ export default {
         //   (o) => splittedTags.indexOf(o.text) >= 0,
         // ).map(el => el.text)
 
-        splittedTags = splittedTags
-          .filter((el) => el && el.trim())
+        splittedTags = splittedTags.filter((el) => el && el.trim())
 
         this.selectedTags = splittedTags
 
@@ -358,20 +357,23 @@ export default {
   computed: {
     selectedTags: {
       get() {
-        return this.selected.filter(el => el)
+        return this.selected.filter((el) => el)
       },
       set(value) {
         if (value) {
-          value.filter(el => el).forEach((tag) => {
-            const findTagIndex = this.options.findIndex(
-              (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
-            )
-            this.$refs.multiselect.addNewOption({
-              id: tag,
-              text: findTagIndex === -1 ? tag : this.options[findTagIndex].text,
-              isNew: findTagIndex === -1,
+          value
+            .filter((el) => el)
+            .forEach((tag) => {
+              const findTagIndex = this.options.findIndex(
+                (opt) => opt.text.toLowerCase() === tag.toLowerCase(),
+              )
+              this.$refs.multiselect.addNewOption({
+                id: tag,
+                text:
+                  findTagIndex === -1 ? tag : this.options[findTagIndex].text,
+                isNew: findTagIndex === -1,
+              })
             })
-          })
         }
         this.selected = value
       },
@@ -806,12 +808,12 @@ export default {
         })
     },
     google() {
-      let tags = this.selectedTags.map((el) => el.text).join(' ')
+      let tags = this.selectedTags.map((el) => el.text || el).join(' ')
       let tab = { url: 'https://www.google.com/search?q=' + tags }
       openTabs([tab])
     },
     stackoverflow() {
-      let tags = this.selectedTags.map((el) => el.text).join(' ')
+      let tags = this.selectedTags.map((el) => el.text || el).join(' ')
       let tab = { url: 'https://stackoverflow.com/search?q=' + tags }
       openTabs([tab])
     },
